@@ -1,3 +1,4 @@
+use std::ops::{Sub, Add};
 
 // housing structs for 3 dimensional objects
 pub struct WireCube{
@@ -20,7 +21,7 @@ impl WireCube {
             
             // west
             [0.0, 0.0, 1.0,  0.0, 1.0, 1.0,  0.0, 1.0, 0.0],
-            [0.0, 1.0, 0.0,  0.0, 1.0, 0.0,  0.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0,  0.0, 1.0, 0.0,  0.0, 0.0, 0.0],
 
             // top
             [0.0, 1.0, 0.0,  0.0, 1.0, 1.0,  1.0, 1.0, 1.0],
@@ -35,6 +36,7 @@ impl WireCube {
 }
 
 // floor
+/*
 pub struct Floor{
     pub vertices: [[f32; 9]; 2],
 }
@@ -45,49 +47,6 @@ impl Floor{
             [1.0, 0.0, 1.0,  0.0, 0.0, 0.0,  1.0, 0.0, 0.0],
         ];
         Floor{vertices: verts}
-    }
-}
-/*
-pub struct Object{
-    // object class for housing vertices
-    // should have its own rotation, scaling, translating
-    // vertices composed of triangles, vector?
-    pub vertices : Vec<Triangle>,
-    pub rotation_x : &Mat3x3, pub rotation_y : &Mat3x3, pub rotation_z : &Mat3x3,
-    pub scale_x : &f32, pub scale_y : &f32, pub scale_z : &f32,
-    pub translation_x : &f32, pub translation_y : &f32, pub translation_z : &f32,
-    pub projection : &Mat4x4,
-
-}
-impl Object{
-    pub fn new(verts: Vec<Triangle>, rmx: &Mat3x3, rmy: &Mat3x3, rmz: &Mat3x3,
-               sclx: &f32, scly: &f32, sclz: &f32,
-               tx: &f32, ty: &f32, tx: &f32
-               projection : &Mat4x4 ) -> Object{
-
-        Object{vertices : verts,
-               rotation_x : rmx, rotation_y : rmy, rotation_z : rmz,
-               scale_x : sclx,   scale_y : scly,   scale_z : sclz,
-               translation_x : tx, translation_y : ty, translation_z : ty,
-               projection : projection_matrix}
-    }
-    pub fn process(&mut self){
-        // returns f32 pointer of triangles making up mesh
-        for triangle in vertices.iter_mut(){
-            // general rotations
-            triangle.rotate(&self.rotation_x);
-            triangle.rotate(&self.rotation_y);
-            triangle.rotate(&self.rotation_z); 
-    
-            // for projection on screen
-            triangle.translate_z(&3.0);
-            triangle.project(&self.projection);
-            triangle.translate_x(&1.0);
-            triangle.translate_y(&1.0);
-    
-            triangle.scale_x(&self.scale_x);
-            triangle.scale_y(&self.scale_y); 
-        }
     }
 }
 */
@@ -153,12 +112,51 @@ impl Mat3x3{
 #[derive(Copy, Clone)]
 pub struct Vec3f{
     pub e : [f32; 3],
-    pub x : f32, pub y : f32, pub z : f32,
 }
 impl Vec3f {
     pub fn new(dat : &[f32]) -> Vec3f{
         let d : [f32; 3] = [dat[0], dat[1], dat[2]];
-        Vec3f{ e : d, x : d[0], y : d[1], z : d[2] }
+        Vec3f{ e : d}
+    }
+    pub fn dot(&mut self, v: &Vec3f) -> f32{
+        return self.e[0]*v.e[0] + self.e[1]*v.e[1] + self.e[2]*v.e[2];
+    }
+    pub fn cross(&mut self, v1: &Vec3f) -> Vec3f{
+        return Vec3f::new(&[ self.e[1]*v1.e[2] - self.e[2]*v1.e[1],
+                                self.e[2]*v1.e[0] - self.e[0]*v1.e[2],
+                                self.e[0]*v1.e[1] - self.e[1]*v1.e[0] ]);
+    }
+    pub fn normalize(&mut self){
+        let len = Self::length(&self);
+        self.e[0] /= len;
+        self.e[1] /= len;
+        self.e[2] /= len;
+    }
+    fn length(&self) -> f32{
+        let l = self.e[0] * self.e[0] + self.e[1] * self.e[1] + self.e[2] * self.e[2];
+        return l.sqrt();
+    }
+    pub fn x(&self) -> f32{
+        return self.e[0];
+    }
+    pub fn y(&self) -> f32{
+        return self.e[1];
+    }
+    pub fn z(&self) -> f32{
+        return self.e[2];
+    }
+}
+// traits (operator overloads)
+impl Sub for Vec3f{
+    type Output = Vec3f;
+    fn sub(self, v1: Vec3f) -> Vec3f{
+        Vec3f{e : [self.e[0]-v1.e[0], self.e[1]-v1.e[1], self.e[2]-v1.e[2]]}
+    }
+}
+impl Add for Vec3f{
+    type Output = Vec3f;
+    fn add(self, v1: Vec3f) -> Vec3f{
+        Vec3f{e : [self.e[0]+v1.e[0], self.e[1]+v1.e[1], self.e[2]+v1.e[2]]}
     }
 }
 
@@ -237,6 +235,25 @@ impl Triangle {
         d[1] = vector.e[0]*matrix.e[3] + vector.e[1]*matrix.e[4] + vector.e[2]*matrix.e[5];
         d[2] = vector.e[0]*matrix.e[6] + vector.e[1]*matrix.e[7] + vector.e[2]*matrix.e[8];
         return Vec3f::new(&d);
+    }
+    pub fn compute_normal(&mut self) -> Vec3f{
+        let mut norm: Vec3f = Vec3f::new(&[0.0; 3]);
+        let mut v1: Vec3f = Vec3f::new(&[0.0; 3]);
+        let mut v2: Vec3f = Vec3f::new(&[0.0; 3]);
+        v1.e[0] = self.vertices[1].e[0] - self.vertices[0].e[0];
+        v1.e[1] = self.vertices[1].e[1] - self.vertices[0].e[1];
+        v1.e[2] = self.vertices[1].e[2] - self.vertices[0].e[2];
+
+        v2.e[0] = self.vertices[2].e[0] - self.vertices[0].e[0];
+        v2.e[1] = self.vertices[2].e[1] - self.vertices[0].e[1];
+        v2.e[2] = self.vertices[2].e[2] - self.vertices[0].e[2];
+
+        norm.e[0] = v1.e[1] * v2.e[2] - v1.e[2] * v2.e[1];
+        norm.e[1] = v1.e[2] * v2.e[0] - v1.e[0] * v2.e[2];
+        norm.e[2] = v1.e[0] * v2.e[1] - v1.e[1] * v2.e[0];
+
+        return norm;
+
     }
 
 }
