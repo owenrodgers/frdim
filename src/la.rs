@@ -1,99 +1,8 @@
+
+// Linear algebra and triangle sruct
 use std::ops::{Sub, Add};
 
-// housing structs for 3 dimensional objects
-pub struct WireCube{
-    pub vertices: [[f32; 9]; 12],
-}
-impl WireCube {
-    pub fn new() -> WireCube{
-        let verts:[[f32; 9]; 12] = [
-            // south
-            [0.0, 0.0, 0.0,  0.0, 1.0, 0.0,  1.0, 1.0, 0.0],
-            [0.0, 0.0, 0.0,  1.0, 1.0, 0.0,  1.0, 0.0, 0.0],
-            
-            // east
-            [1.0, 0.0, 0.0,  1.0, 1.0, 0.0,  1.0, 1.0, 1.0],
-            [1.0, 0.0, 0.0,  1.0, 1.0, 1.0,  1.0, 0.0, 1.0],
-            
-            // north
-            [1.0, 0.0, 1.0,  1.0, 1.0, 1.0,  0.0, 1.0, 1.0],
-            [1.0, 0.0, 1.0,  0.0, 1.0, 1.0,  0.0, 0.0, 1.0],
-            
-            // west
-            [0.0, 0.0, 1.0,  0.0, 1.0, 1.0,  0.0, 1.0, 0.0],
-            [0.0, 0.0, 1.0,  0.0, 1.0, 0.0,  0.0, 0.0, 0.0],
-
-            // top
-            [0.0, 1.0, 0.0,  0.0, 1.0, 1.0,  1.0, 1.0, 1.0],
-            [0.0, 1.0, 0.0,  1.0, 1.0, 1.0,  1.0, 1.0, 0.0],
-
-            // bottom
-            [1.0, 0.0, 1.0,  0.0, 0.0, 1.0,  0.0, 0.0, 0.0],
-            [1.0, 0.0, 1.0,  0.0, 0.0, 0.0,  1.0, 0.0, 0.0],
-        ];
-        WireCube{vertices: verts}
-    }
-}
-
-
-// ---- 4x4 Matrices ----
-pub struct Mat4x4{
-    e: [f32; 16],
-}
-impl Mat4x4 {
-    pub fn new() -> Mat4x4{
-        let dat: [f32; 16] = [0.0; 16];
-        Mat4x4{ e : dat }
-    }
-    pub fn projection(&mut self, h: &f32, w: &f32, fov: &f32, zfar: &f32, znear: &f32){
-        let a: f32 = w / h;
-        let f: f32 = 1.0 / (fov*0.5).tan();
-        let q: f32 = zfar / (zfar - znear);
-    
-        self.e[0] = a * f;
-        self.e[5] = f;
-        self.e[10] = q;
-        self.e[11] = 1.0;
-        self.e[14] = -1.0 * znear * q;
-    }
-}
-
-// ---- 3x3 Matrices ----
-pub struct Mat3x3{
-    e: [f32; 9],
-}
-impl Mat3x3{
-    pub fn new() -> Mat3x3{
-        let dat: [f32; 9] = [0.0; 9];
-        Mat3x3{ e: dat}
-    }
-    pub fn rotation_x(&mut self, theta: &f32){
-        self.e[0] = 1.0;
-        self.e[4] = theta.cos();
-        self.e[5] = -1.0 * theta.sin();
-        self.e[7] = theta.sin();
-        self.e[8] = theta.cos();
-    }
-    pub fn rotation_y(&mut self, theta: &f32){
-        self.e[0] = theta.cos();
-        self.e[2] = theta.sin();
-        self.e[4] = 1.0;
-        self.e[6] = -1.0 * theta.sin();
-        self.e[8] = theta.cos();
-    }
-    pub fn rotation_z(&mut self, theta: &f32){
-        self.e[0] = theta.cos();
-        self.e[1] = -1.0 * theta.sin();
-        self.e[3] = theta.sin();
-        self.e[4] = theta.cos();
-        self.e[8] = 1.0;
-    }
-}
-
-
-
 // ---- Vec3f ----
-
 #[derive(Copy, Clone)]
 pub struct Vec3f{
     pub e : [f32; 3],
@@ -145,6 +54,61 @@ impl Add for Vec3f{
     type Output = Vec3f;
     fn add(self, v1: Vec3f) -> Vec3f{
         Vec3f{e : [self.e[0]+v1.e[0], self.e[1]+v1.e[1], self.e[2]+v1.e[2]]}
+    }
+}
+
+
+// ---- 3x3 Matrices ----
+pub struct Mat3x3{
+    e: [f32; 9],
+}
+impl Mat3x3{
+    pub fn new() -> Mat3x3{
+        let dat: [f32; 9] = [0.0; 9];
+        Mat3x3{ e: dat}
+    }
+    pub fn rotation_x(&mut self, theta: &f32){
+        self.e[0] = 1.0;
+        self.e[4] = theta.cos();
+        self.e[5] = -1.0 * theta.sin();
+        self.e[7] = theta.sin();
+        self.e[8] = theta.cos();
+    }
+    pub fn rotation_y(&mut self, theta: &f32){
+        self.e[0] = theta.cos();
+        self.e[2] = theta.sin();
+        self.e[4] = 1.0;
+        self.e[6] = -1.0 * theta.sin();
+        self.e[8] = theta.cos();
+    }
+    pub fn rotation_z(&mut self, theta: &f32){
+        self.e[0] = theta.cos();
+        self.e[1] = -1.0 * theta.sin();
+        self.e[3] = theta.sin();
+        self.e[4] = theta.cos();
+        self.e[8] = 1.0;
+    }
+}
+
+// ---- 4x4 Matrices ----
+pub struct Mat4x4{
+    e: [f32; 16],
+}
+impl Mat4x4 {
+    pub fn new() -> Mat4x4{
+        let dat: [f32; 16] = [0.0; 16];
+        Mat4x4{ e : dat }
+    }
+    pub fn projection(&mut self, h: &f32, w: &f32, fov: &f32, zfar: &f32, znear: &f32){
+        let a: f32 = w / h;
+        let f: f32 = 1.0 / (fov*0.5).tan();
+        let q: f32 = zfar / (zfar - znear);
+    
+        self.e[0] = a * f;
+        self.e[5] = f;
+        self.e[10] = q;
+        self.e[11] = 1.0;
+        self.e[14] = -1.0 * znear * q;
     }
 }
 
