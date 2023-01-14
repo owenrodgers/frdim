@@ -35,21 +35,6 @@ impl WireCube {
     }
 }
 
-// floor
-/*
-pub struct Floor{
-    pub vertices: [[f32; 9]; 2],
-}
-impl Floor{
-    pub fn new() -> Floor{
-        let verts:[[f32; 9]; 2] = [
-            [1.0, 0.0, 1.0,  0.0, 0.0, 1.0,  0.0, 0.0, 0.0],
-            [1.0, 0.0, 1.0,  0.0, 0.0, 0.0,  1.0, 0.0, 0.0],
-        ];
-        Floor{vertices: verts}
-    }
-}
-*/
 
 // ---- 4x4 Matrices ----
 pub struct Mat4x4{
@@ -144,6 +129,9 @@ impl Vec3f {
     }
     pub fn z(&self) -> f32{
         return self.e[2];
+    }
+    pub fn xy(&self) -> [f32; 2] {
+        return [self.e[0], self.e[1]];
     }
 }
 // traits (operator overloads)
