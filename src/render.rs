@@ -36,8 +36,9 @@ pub fn fill_bottom_flat(c: &mut WindowCanvas, v1: &[f32; 2], v2: &[f32; 2], v3: 
     let invslope2: f32 = (v3[0] - v1[0]) / (v3[1] - v1[1]);
     let mut curx1 = v1[0];
     let mut curx2 = v1[0];
+    
     for scanline_y in v1[1] as i32..v2[1] as i32{
-        c.line(curx1 as i16, scanline_y as i16, curx2 as i16, scanline_y as i16, Color::RGB(fc[0], fc[1], fc[2])).ok();
+        c.line(curx1 as i16-1, scanline_y as i16, curx2 as i16+1, scanline_y as i16, Color::RGB(fc[0], fc[1], fc[2])).ok();
         curx1 += invslope1;
         curx2 += invslope2;
     }
@@ -47,10 +48,12 @@ pub fn fill_top_flat(c: &mut WindowCanvas, v1: &[f32; 2], v2: &[f32; 2], v3: &[f
     let invslope1: f32 = (v3[0] - v1[0]) / (v3[1] - v1[1]);
     let invslope2: f32 = (v3[0] - v2[0]) / (v3[1] - v2[1]);
     let mut curx1 = v3[0];
-    let mut curx2 = v3[0];   
+    let mut curx2 = v3[0];
+
     for scanline_y in (v1[1] as i32 .. v3[1] as i32 ).rev(){
-        c.line(curx1 as i16, scanline_y as i16, curx2 as i16, scanline_y as i16, Color::RGB(fc[0], fc[1], fc[2])).ok();
+        c.line(curx1 as i16-1, scanline_y as i16, curx2 as i16+1, scanline_y as i16, Color::RGB(fc[0], fc[1], fc[2])).ok();
         curx1 -= invslope1;
         curx2 -= invslope2; 
     }
+    
 }

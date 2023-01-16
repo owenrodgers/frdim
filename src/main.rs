@@ -10,7 +10,7 @@ mod la;
 use la::{Vec3f, Mat3x3, Mat4x4, Triangle};
 
 mod render;
-use render::{tri, fill_tri};
+use render::{fill_tri};
 
 mod mesh;
 use mesh::WireCube;
@@ -42,7 +42,7 @@ pub fn main() -> Result<(), String> {
     projection_matrix.projection(&SCREEN_HEIGHT, &SCREEN_WIDTH, &FOV, &FFAR, &FNEAR);
 
     let mut theta: f32 = 0.0;
-    let theta_increment: f32 = 0.02;
+    let theta_increment: f32 = 0.05;
 
     let mut rmx = Mat3x3::new();
     let mut rmy = Mat3x3::new();
@@ -58,7 +58,7 @@ pub fn main() -> Result<(), String> {
                 Event::Quit { .. } => break 'main,
                 Event::MouseButtonDown { x, y, .. } => {
                     println!("Mouse button down at ({},{})", x, y);
-                    theta = 0.0;
+                    theta += theta_increment;
                 }
                 _ => { }
                 
@@ -88,6 +88,8 @@ fn render(c: &mut WindowCanvas, pmat: &Mat4x4, rmx: &Mat3x3, rmy: &Mat3x3, rmz: 
     let projection_matrix: &Mat4x4 = pmat;
 
     let camera: Vec3f = Vec3f::new(&[0.0;3]);
+    let mut light: Vec3f = Vec3f::new(&[0.0, 0.0, -1.0]);
+
     let mut normal: Vec3f;
     let mut dot: f32;
 
@@ -106,21 +108,25 @@ fn render(c: &mut WindowCanvas, pmat: &Mat4x4, rmx: &Mat3x3, rmy: &Mat3x3, rmz: 
         dot = normal.dot(&(triangle.vertices[0] - camera));
 
         if dot < 0.0 {
-            triangle.project(projection_matrix);
+            normal = triangle.compute_normal();
+            normal.normalize();
+            light.normalize();
 
+            let dp = normal.dot(&light);
+            let cval = (255.0 * dp) as u8;
+
+            triangle.project(projection_matrix);
+            
             triangle.translate_x(&1.0);
             triangle.translate_y(&1.0);
 
             triangle.scale_x(&(SCREEN_WIDTH*0.5));
             triangle.scale_y(&(SCREEN_HEIGHT*0.5));
-            /*tri(c, triangle.vertices[0].e[0], triangle.vertices[0].e[1], 
-                triangle.vertices[1].e[0], triangle.vertices[1].e[1], 
-                triangle.vertices[2].e[0], triangle.vertices[2].e[1]);*/
 
             fill_tri(c, &mut triangle.vertices[0].xy(), 
                         &mut triangle.vertices[1].xy(), 
                         &mut triangle.vertices[2].xy(), 
-                        &[120,143,161]);
+                        &[cval,cval,cval]);
         }
 
     }

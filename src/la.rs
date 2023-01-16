@@ -189,23 +189,10 @@ impl Triangle {
         return Vec3f::new(&d);
     }
     pub fn compute_normal(&mut self) -> Vec3f{
-        let mut norm: Vec3f = Vec3f::new(&[0.0; 3]);
-        let mut v1: Vec3f = Vec3f::new(&[0.0; 3]);
-        let mut v2: Vec3f = Vec3f::new(&[0.0; 3]);
-        v1.e[0] = self.vertices[1].e[0] - self.vertices[0].e[0];
-        v1.e[1] = self.vertices[1].e[1] - self.vertices[0].e[1];
-        v1.e[2] = self.vertices[1].e[2] - self.vertices[0].e[2];
+        let mut v1 = self.vertices[1] - self.vertices[0];
+        let mut v2 = self.vertices[2] - self.vertices[0];
 
-        v2.e[0] = self.vertices[2].e[0] - self.vertices[0].e[0];
-        v2.e[1] = self.vertices[2].e[1] - self.vertices[0].e[1];
-        v2.e[2] = self.vertices[2].e[2] - self.vertices[0].e[2];
-
-        norm.e[0] = v1.e[1] * v2.e[2] - v1.e[2] * v2.e[1];
-        norm.e[1] = v1.e[2] * v2.e[0] - v1.e[0] * v2.e[2];
-        norm.e[2] = v1.e[0] * v2.e[1] - v1.e[1] * v2.e[0];
-
-        return norm;
-
+        return v1.cross(&v2);
     }
 
 }
