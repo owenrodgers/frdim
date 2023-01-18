@@ -5,15 +5,17 @@ use sdl2::pixels::Color;
 use sdl2::render::WindowCanvas;
 
 use std::time::Duration;
+use std::env;
+use std::fs;
 
 mod la;
-use la::{Vec3f, Mat3x3, Mat4x4, Triangle};
+use la::{Vec3f, WireCube, Mat3x3, Mat4x4, Triangle};
+
+mod mesh;
+use mesh::Mesh;
 
 mod render;
 use render::{fill_tri};
-
-mod mesh;
-use mesh::WireCube;
 
 const SCREEN_WIDTH: f32 = 800.0;
 const SCREEN_HEIGHT: f32 = 600.0;
@@ -37,6 +39,9 @@ pub fn main() -> Result<(), String> {
         .build()
         .map_err(|e| e.to_string())?;
     let mut event_pump = sdl_context.event_pump()?;
+
+    let mut mesh = Mesh::new();
+    mesh.build_triangles("models/second.obj");
 
     let mut projection_matrix = Mat4x4::new();
     projection_matrix.projection(&SCREEN_HEIGHT, &SCREEN_WIDTH, &FOV, &FFAR, &FNEAR);
@@ -72,7 +77,7 @@ pub fn main() -> Result<(), String> {
         rmx.rotation_x(&theta);
         rmy.rotation_y(&theta);
         rmz.rotation_z(&theta);
-        render(&mut canvas, &projection_matrix, &rmx, &rmy, &rmz).ok();
+        render(&mut canvas, &mesh, &projection_matrix, &rmx, &rmy, &rmz).ok();
         theta += theta_increment;
 
         canvas.present();
@@ -82,9 +87,9 @@ pub fn main() -> Result<(), String> {
     Ok(())
 }
 
-fn render(c: &mut WindowCanvas, pmat: &Mat4x4, rmx: &Mat3x3, rmy: &Mat3x3, rmz: &Mat3x3) -> Result<(),String>{
-    // render the wire cube
-    let wc: WireCube = WireCube::new();
+fn render(c: &mut WindowCanvas, mesh: &Mesh, pmat: &Mat4x4, rmx: &Mat3x3, rmy: &Mat3x3, rmz: &Mat3x3) -> Result<(),String>{
+    // render the mesh
+    let mut wc: WireCube = WireCube::new();
     let projection_matrix: &Mat4x4 = pmat;
 
     let camera: Vec3f = Vec3f::new(&[0.0;3]);
@@ -93,39 +98,43 @@ fn render(c: &mut WindowCanvas, pmat: &Mat4x4, rmx: &Mat3x3, rmy: &Mat3x3, rmz: 
     let mut normal: Vec3f;
     let mut dot: f32;
 
-    for vertice_set in wc.vertices.iter(){
-        let mut triangle: Triangle = Triangle::new(vertice_set);
+    let mut render_tri: Triangle;
 
-        triangle.rotate(&rmx);
-        triangle.rotate(&rmy);
-        triangle.rotate(&rmz); 
+    //for vs in wc.vertices.iter_mut(){
+    for tri in mesh.triangles.iter(){
+        render_tri = Triangle{ vertices: tri.vertices};
+        // render tri needs to be copy of tri
+        render_tri.rotate(&rmx);
+        render_tri.rotate(&rmy);
+        render_tri.rotate(&rmz);
 
-        triangle.translate_z(&3.0);
+        //very very broken
+        render_tri.translate_z(&5.0);
 
         // calculate surface normals for rendering
-        normal = triangle.compute_normal();
+        normal = render_tri.compute_normal();
         normal.normalize();
-        dot = normal.dot(&(triangle.vertices[0] - camera));
+        dot = normal.dot(&(render_tri.vertices[0] - camera));
 
         if dot < 0.0 {
-            normal = triangle.compute_normal();
+            normal = render_tri.compute_normal();
             normal.normalize();
             light.normalize();
 
             let dp = normal.dot(&light);
             let cval = (255.0 * dp) as u8;
 
-            triangle.project(projection_matrix);
+            render_tri.project(projection_matrix);
             
-            triangle.translate_x(&1.0);
-            triangle.translate_y(&1.0);
+            render_tri.translate_x(&1.0);
+            render_tri.translate_y(&1.0);
 
-            triangle.scale_x(&(SCREEN_WIDTH*0.5));
-            triangle.scale_y(&(SCREEN_HEIGHT*0.5));
+            render_tri.scale_x(&(SCREEN_WIDTH*0.5));
+            render_tri.scale_y(&(SCREEN_HEIGHT*0.5));
 
-            fill_tri(c, &mut triangle.vertices[0].xy(), 
-                        &mut triangle.vertices[1].xy(), 
-                        &mut triangle.vertices[2].xy(), 
+            fill_tri(c, &mut render_tri.vertices[0].xy(), 
+                        &mut render_tri.vertices[1].xy(), 
+                        &mut render_tri.vertices[2].xy(), 
                         &[cval,cval,cval]);
         }
 
@@ -133,6 +142,3 @@ fn render(c: &mut WindowCanvas, pmat: &Mat4x4, rmx: &Mat3x3, rmy: &Mat3x3, rmz: 
     Ok(())
 
 }
-
-
-

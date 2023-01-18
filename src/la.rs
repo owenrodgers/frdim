@@ -2,6 +2,13 @@
 // Linear algebra and triangle sruct
 use std::ops::{Sub, Add};
 
+use std::fs::File;
+use std::io::{self, BufRead};
+use std::path::Path;
+
+
+
+
 // ---- Vec3f ----
 #[derive(Copy, Clone)]
 pub struct Vec3f{
@@ -113,14 +120,15 @@ impl Mat4x4 {
 }
 
 // ---- Triangle ----
+#[derive(Copy, Clone)]
 pub struct Triangle{
     pub vertices : [Vec3f ; 3],
 }
 impl Triangle {
-    pub fn new(raw_vertices: &[f32; 9]) -> Triangle {
-        let va = Vec3f::new(&raw_vertices[0..3]);
-        let vb = Vec3f::new(&raw_vertices[3..6]);
-        let vc = Vec3f::new(&raw_vertices[6..9]);
+    pub fn new(v1r: &[f32; 3], v2r: &[f32; 3], v3r: &[f32; 3]) -> Triangle {
+        let va = Vec3f::new(v1r);
+        let vb = Vec3f::new(v2r);
+        let vc = Vec3f::new(v3r);
         Triangle{ vertices: [va, vb, vc] }
     }
     pub fn rotate(&mut self, rotation_matrix: &Mat3x3){
@@ -196,3 +204,41 @@ impl Triangle {
     }
 
 }
+
+// wire cube, soon to be object file processing
+pub struct WireCube{
+    pub vertices: [[f32; 9]; 12],
+}
+impl WireCube {
+    pub fn new() -> WireCube{
+        let verts:[[f32; 9]; 12] = [
+            // south
+            [0.0, 0.0, 0.0,  0.0, 1.0, 0.0,  1.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0,  1.0, 1.0, 0.0,  1.0, 0.0, 0.0],
+            
+            // east
+            [1.0, 0.0, 0.0,  1.0, 1.0, 0.0,  1.0, 1.0, 1.0],
+            [1.0, 0.0, 0.0,  1.0, 1.0, 1.0,  1.0, 0.0, 1.0],
+            
+            // north
+            [1.0, 0.0, 1.0,  1.0, 1.0, 1.0,  0.0, 1.0, 1.0],
+            [1.0, 0.0, 1.0,  0.0, 1.0, 1.0,  0.0, 0.0, 1.0],
+            
+            // west
+            [0.0, 0.0, 1.0,  0.0, 1.0, 1.0,  0.0, 1.0, 0.0],
+            [0.0, 0.0, 1.0,  0.0, 1.0, 0.0,  0.0, 0.0, 0.0],
+
+            // top
+            [0.0, 1.0, 0.0,  0.0, 1.0, 1.0,  1.0, 1.0, 1.0],
+            [0.0, 1.0, 0.0,  1.0, 1.0, 1.0,  1.0, 1.0, 0.0],
+
+            // bottom
+            [1.0, 0.0, 1.0,  0.0, 0.0, 1.0,  0.0, 0.0, 0.0],
+            [1.0, 0.0, 1.0,  0.0, 0.0, 0.0,  1.0, 0.0, 0.0],
+        ];
+        WireCube{vertices: verts}
+    }
+}
+
+
+
