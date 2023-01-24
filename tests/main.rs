@@ -1,14 +1,10 @@
 
-
-// test importing vertex data
-// cleaner read from file
-// mesh struct and construct
-// make everything not a mess
-
-
-
-fn main(){
-   
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn works() {
+        assert_eq!(2+2, 4);
+    }
 }
 
 

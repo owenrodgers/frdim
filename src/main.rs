@@ -5,17 +5,17 @@ use sdl2::pixels::Color;
 use sdl2::render::WindowCanvas;
 
 use std::time::Duration;
-use std::env;
-use std::fs;
 
-mod la;
-use la::{Vec3f, WireCube, Mat3x3, Mat4x4, Triangle};
+use crate::la::vec3f::Vec3f;
+use crate::la::mat3x3::Mat3x3;
+use crate::la::mat4x4::Mat4x4;
+pub mod la;
 
-mod mesh;
-use mesh::Mesh;
+use crate::meshrender::triangle::Triangle;
+use crate::meshrender::mesh::Mesh;
+use crate::meshrender::render::{fill_tri};
+pub mod meshrender;
 
-mod render;
-use render::{fill_tri};
 
 const SCREEN_WIDTH: f32 = 800.0;
 const SCREEN_HEIGHT: f32 = 600.0;
@@ -23,6 +23,17 @@ const SCREEN_HEIGHT: f32 = 600.0;
 const FNEAR: f32 = 1.0;
 const FFAR: f32 = 1000.0;
 const FOV: f32 = 90.0;
+
+/*
+mesh.build_triangles("models/simple_torus.obj"); --> cargo run --"models/simple_torus.obj"
+render_tri = Triangle{ vertices: tri.vertices}; --> Change this explicit copy, too slow
+
+Think about how rotations, scalings and transformations should be performed on meshes, currently passing 
+evrything into render looks like a mess
+
+System for propogating errors up call stack needs to be in place with Option<> and Result<>
+occlusion needs to be fixed, rendering faces that should not be seen
+*/
 
 
 pub fn main() -> Result<(), String> {
@@ -41,13 +52,15 @@ pub fn main() -> Result<(), String> {
     let mut event_pump = sdl_context.event_pump()?;
 
     let mut mesh = Mesh::new();
-    mesh.build_triangles("models/second.obj");
+    mesh.build_triangles("models/simple_torus.obj");
+
+    // turn this ^ into this > "cargo run --"models/simple_torus.obj""
 
     let mut projection_matrix = Mat4x4::new();
     projection_matrix.projection(&SCREEN_HEIGHT, &SCREEN_WIDTH, &FOV, &FFAR, &FNEAR);
 
     let mut theta: f32 = 0.0;
-    let theta_increment: f32 = 0.05;
+    let mut theta_increment: f32 = 0.03;
 
     let mut rmx = Mat3x3::new();
     let mut rmy = Mat3x3::new();
@@ -63,7 +76,7 @@ pub fn main() -> Result<(), String> {
                 Event::Quit { .. } => break 'main,
                 Event::MouseButtonDown { x, y, .. } => {
                     println!("Mouse button down at ({},{})", x, y);
-                    theta += theta_increment;
+                    theta_increment = 0.0;
                 }
                 _ => { }
                 
@@ -77,7 +90,8 @@ pub fn main() -> Result<(), String> {
         rmx.rotation_x(&theta);
         rmy.rotation_y(&theta);
         rmz.rotation_z(&theta);
-        render(&mut canvas, &mesh, &projection_matrix, &rmx, &rmy, &rmz).ok();
+
+        render(&mut canvas, &mesh, &projection_matrix, &rmx, &rmy, &rmz).ok(); // you have no idea what's going on with .ok()
         theta += theta_increment;
 
         canvas.present();
@@ -89,7 +103,6 @@ pub fn main() -> Result<(), String> {
 
 fn render(c: &mut WindowCanvas, mesh: &Mesh, pmat: &Mat4x4, rmx: &Mat3x3, rmy: &Mat3x3, rmz: &Mat3x3) -> Result<(),String>{
     // render the mesh
-    let mut wc: WireCube = WireCube::new();
     let projection_matrix: &Mat4x4 = pmat;
 
     let camera: Vec3f = Vec3f::new(&[0.0;3]);
@@ -100,16 +113,15 @@ fn render(c: &mut WindowCanvas, mesh: &Mesh, pmat: &Mat4x4, rmx: &Mat3x3, rmy: &
 
     let mut render_tri: Triangle;
 
-    //for vs in wc.vertices.iter_mut(){
+
     for tri in mesh.triangles.iter(){
-        render_tri = Triangle{ vertices: tri.vertices};
-        // render tri needs to be copy of tri
+        render_tri = Triangle{ vertices: tri.vertices}; // this is bad
+
         render_tri.rotate(&rmx);
         render_tri.rotate(&rmy);
         render_tri.rotate(&rmz);
 
-        //very very broken
-        render_tri.translate_z(&5.0);
+        render_tri.translate_z(&4.0);
 
         // calculate surface normals for rendering
         normal = render_tri.compute_normal();
@@ -121,14 +133,11 @@ fn render(c: &mut WindowCanvas, mesh: &Mesh, pmat: &Mat4x4, rmx: &Mat3x3, rmy: &
             normal.normalize();
             light.normalize();
 
-            let dp = normal.dot(&light);
-            let cval = (255.0 * dp) as u8;
+            let cval = (255.0 * normal.dot(&light) ) as u8;
 
             render_tri.project(projection_matrix);
-            
             render_tri.translate_x(&1.0);
             render_tri.translate_y(&1.0);
-
             render_tri.scale_x(&(SCREEN_WIDTH*0.5));
             render_tri.scale_y(&(SCREEN_HEIGHT*0.5));
 

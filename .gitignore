@@ -1,3 +1,4 @@
 
 target/
 src/old.txt
+.DS_Store

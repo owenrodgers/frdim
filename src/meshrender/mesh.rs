@@ -3,25 +3,16 @@ use crate::Triangle;
 use std::fs::File;
 use std::io::{self, BufRead};
 use std::path::Path;
-/*
----- MESH STRUCT ----
-Vec<Triangle>
-
-Mesh only houses sets of 3 points [x,y,z]
-heavy lifting to generate is done by auxillary function
-
-Mesh::new() -> Blank mesh
-
-*/
 
 pub struct Mesh{
     pub triangles: Vec<Triangle>,
 }
 impl Mesh{
     pub fn new() -> Mesh{
-        let mut v = Vec::new();
+        let v = Vec::new();
         Mesh{ triangles: v}
     }
+    // clean this up
     pub fn build_triangles(&mut self, filename: &str) {
         let (vertices, indices) = Self::load_vdata(filename);
         println!("{} lines of vertex data", vertices.len());
@@ -29,16 +20,13 @@ impl Mesh{
 
         for index_set in indices{
             // convert to zero based index
-            //println!("{:?}", index_set);
             let a1 = (index_set[0] - 1) as usize;
             let a2 = (index_set[1] - 1) as usize;
             let a3 = (index_set[2] - 1) as usize;
-            //println!("{}, {}, {}", a1, a2, a3);
+
             let v1 = vertices[a1];
             let v2 = vertices[a2];
             let v3 = vertices[a3];
-
-            //println!("{:?}, {:?}, {:?}", v1, v2, v3);
 
             let tri: Triangle = Triangle::new(&v1, &v2, &v3);
             self.triangles.push(tri);
@@ -46,7 +34,7 @@ impl Mesh{
     }
 
 
-
+    // hate this code
     pub fn load_vdata(filename: &str) -> (Vec<[f32; 3]>, Vec<[i32; 3]>){
         // read raw from file
         let mut raw_v: Vec<[f32; 3]> = Vec::new();
