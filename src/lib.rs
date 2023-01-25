@@ -1,4 +1,4 @@
-// for test directory
+#[allow(unused_imports)]
 
 use crate::la::vec3f::Vec3f;
 use crate::la::mat3x3::Mat3x3;

@@ -1,5 +1,4 @@
 extern crate sdl2;
-
 use sdl2::event::Event;
 use sdl2::pixels::Color;
 use sdl2::render::WindowCanvas;
@@ -48,10 +47,10 @@ pub fn main() -> Result<(), String> {
         .map_err(|e| e.to_string())?;
     let mut event_pump = sdl_context.event_pump()?;
 
-    let mut rad: f32 = 0.5;
+    let rad: f32 = 0.5;
     let mut x: f32 = 0.0;
     let x_inc: f32 = 0.05;
-    let mut max_rad: f32 = 0.7;
+    let max_rad: f32 = 0.7;
 
     let mut slice = HsSlice::new();
     slice.mesh_update(rad);
@@ -113,7 +112,8 @@ fn render_slice(c: &mut WindowCanvas, slice: &HsSlice, pmat: &Mat4x4) -> Result<
             normal.normalize();
             light.normalize();
 
-            let cval = (255.0 * normal.dot(&light) ) as u8;
+            //let cval = (255.0 * normal.dot(&light) ) as u8;
+            let (r,g,b) = find_color(normal.dot(&light), slice.radius);
 
             render_tri.project(pmat);
             render_tri.translate_x(&1.0);
@@ -124,12 +124,19 @@ fn render_slice(c: &mut WindowCanvas, slice: &HsSlice, pmat: &Mat4x4) -> Result<
             fill_tri(c, &mut render_tri.vertices[0].xy(), 
                         &mut render_tri.vertices[1].xy(), 
                         &mut render_tri.vertices[2].xy(), 
-                        &[cval,cval,cval]);
+                        &[r,g,b]);
         }
 
     }
     Ok(())
  
+}
+
+fn find_color(product: f32, radius: f32) -> (u8, u8, u8) {
+    let cvr = (74.0 * product ) as u8;
+    let cvg = (168.0 * product ) as u8;
+    let cvb = (82.0 * product ) as u8;
+    (cvr, cvg, cvb)
 }
 
 
