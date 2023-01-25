@@ -18,7 +18,7 @@ pub mod meshrender;
 
 
 const SCREEN_WIDTH: f32 = 800.0;
-const SCREEN_HEIGHT: f32 = 600.0;
+const SCREEN_HEIGHT: f32 = 800.0;
 
 const FNEAR: f32 = 1.0;
 const FFAR: f32 = 1000.0;
@@ -52,7 +52,7 @@ pub fn main() -> Result<(), String> {
     let mut event_pump = sdl_context.event_pump()?;
 
     let mut mesh = Mesh::new();
-    mesh.build_triangles("models/gunship_small.obj");
+    mesh.build_triangles("models/poser_sphere.obj");
 
     // turn this ^ into this > "cargo run --"models/simple_torus.obj""
 
@@ -121,7 +121,7 @@ fn render(c: &mut WindowCanvas, mesh: &Mesh, pmat: &Mat4x4, rmx: &Mat3x3, rmy: &
         render_tri.rotate(&rmy);
         render_tri.rotate(&rmz);
 
-        render_tri.translate_z(&5.0);
+        render_tri.translate_z(&3.0);
 
         // calculate surface normals for rendering
         normal = render_tri.compute_normal();

@@ -10,3 +10,6 @@ pub mod la;
 //use crate::meshrender::render::{fill_tri};
 //pub mod meshrender;
 
+use crate::fourshapes::hypersphere::HyperSphere;
+pub mod fourshapes;
+
