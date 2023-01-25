@@ -15,8 +15,8 @@ impl Mesh{
     // clean this up
     pub fn build_triangles(&mut self, filename: &str) {
         let (vertices, indices) = Self::load_vdata(filename);
-        println!("{} lines of vertex data", vertices.len());
-        println!("{} lines of index data", indices.len());
+        //println!("{} lines of vertex data", vertices.len());
+        //println!("{} lines of index data", indices.len());
 
         for index_set in indices{
             // convert to zero based index

@@ -58,6 +58,14 @@ impl Triangle {
             vn.e[2] *= val;
         }
     }
+    pub fn scale(&mut self, val: f32){
+        for vn in self.vertices.iter_mut(){
+            vn.e[0] *= val;
+            vn.e[1] *= val;
+            vn.e[2] *= val;
+        }
+    }
+
 
     fn dot_v4m4(vector: Vec3f, matrix: &Mat4x4) -> Vec3f{
         let mut d: [f32; 3] = [0.0; 3];
