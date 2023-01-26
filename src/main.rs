@@ -15,7 +15,7 @@ use crate::meshrender::mesh::Mesh;
 use crate::meshrender::render::{fill_tri};
 pub mod meshrender;
 
-use crate::fourshapes::hypersphere::HsSlice;
+use crate::fourshapes::hypersphere::HyperSphere;
 pub mod fourshapes;
 
 
@@ -47,14 +47,13 @@ pub fn main() -> Result<(), String> {
         .map_err(|e| e.to_string())?;
     let mut event_pump = sdl_context.event_pump()?;
 
-    let rad: f32 = 0.5;
+    let hs_radius: f32 = 4.0;
+    let init_w0: f32 = 0.0;
+    let mut cw0 = 0.0;
     let mut x: f32 = 0.0;
-    let x_inc: f32 = 0.05;
-    let max_rad: f32 = 0.7;
+    let mut hsp = HyperSphere::new(hs_radius, init_w0);
+    //hsp.update_mesh(1.0);
 
-    let mut slice = HsSlice::new();
-    slice.mesh_update(rad);
-    
     let mut projection_matrix = Mat4x4::new();
     projection_matrix.projection(&SCREEN_HEIGHT, &SCREEN_WIDTH, &FOV, &FFAR, &FNEAR);
 
@@ -78,9 +77,17 @@ pub fn main() -> Result<(), String> {
         canvas.set_draw_color(Color::RGB(5, 52, 99));
         canvas.clear();
         
-        render_slice(&mut canvas, &slice, &projection_matrix).ok();
-        x += x_inc;
-        slice.mesh_update((x.cos() * max_rad) + (max_rad + 0.5) );
+        if hsp.valid_slice() { 
+            render_slice(&mut canvas, &hsp, &projection_matrix).ok(); 
+            println!("{}", hsp.valid_slice()); 
+            println!("slice radius: {}", hsp.slice_radius);
+            //println!("")
+        } else {
+            println!("invalid");
+        }
+        hsp.update_mesh(cw0);
+        cw0 = x.cos() + 1.0;
+        x += 0.05;
 
         canvas.present();
         ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 30));
@@ -90,7 +97,7 @@ pub fn main() -> Result<(), String> {
 }
 
 // render a slice of 4d object
-fn render_slice(c: &mut WindowCanvas, slice: &HsSlice, pmat: &Mat4x4) -> Result<(), String> {
+fn render_slice(c: &mut WindowCanvas, hypersphere: &HyperSphere, pmat: &Mat4x4) -> Result<(), String> {
     let camera: Vec3f = Vec3f::new(&[0.0;3]);
     let mut light: Vec3f = Vec3f::new(&[0.0, 0.0, -1.0]);
 
@@ -99,9 +106,9 @@ fn render_slice(c: &mut WindowCanvas, slice: &HsSlice, pmat: &Mat4x4) -> Result<
 
     let mut render_tri: Triangle;
 
-    for tri in slice.mesh.triangles.iter() {
+    for tri in hypersphere.slice_mesh.triangles.iter() {
         render_tri = Triangle{ vertices: tri.vertices };
-        render_tri.translate_z(&3.0);
+        render_tri.translate_z(&5.0);
 
         normal = render_tri.compute_normal();
         normal.normalize();
@@ -112,8 +119,7 @@ fn render_slice(c: &mut WindowCanvas, slice: &HsSlice, pmat: &Mat4x4) -> Result<
             normal.normalize();
             light.normalize();
 
-            //let cval = (255.0 * normal.dot(&light) ) as u8;
-            let (r,g,b) = find_color(normal.dot(&light), slice.radius);
+            let (r,g,b) = find_color(normal.dot(&light), hypersphere.slice_radius);
 
             render_tri.project(pmat);
             render_tri.translate_x(&1.0);

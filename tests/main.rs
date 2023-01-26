@@ -3,31 +3,20 @@
 
 
 //cargo build && cargo test -- --nocapture
-use frdim::fourshapes::hypersphere::HsSlice;
+use frdim::fourshapes::hypersphere::HyperSphere;
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn test_hs_new() {
-        let mut hs: HsSlice = HsSlice::new(4.0);
-        println!("Triangles: {:?}", hs.mesh.triangles.len());
-
-
-        println!("old radius: {}", hs.radius);
-        let radius_new: f32 = 2.0;
-        hs.mesh_update(radius_new);
-        println!("new radius: {}", hs.radius);
-
+    fn test_sr1() {
+        // hypersphere_radius: f32, w_naught
+        let hsr: f32 = 5.0; // = hypersphere_radius
+        let w0: f32 = 1.0; // = w_naught
+        let mut hs: HyperSphere = HyperSphere::new(hsr, w0);
+        println!("radius: {}, slice radius: {}, w0: {}", hs.hypersphere_radius, hs.slice_radius, hs.w_naught);
 
     }
+
 }
-
-/*
-162 lines of vertex data
-320 lines of index data
-Triangles: 320
-*/
-
-

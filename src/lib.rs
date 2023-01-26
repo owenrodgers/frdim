@@ -12,6 +12,6 @@ use crate::meshrender::render::{fill_tri};
 pub mod meshrender;
 
 
-use crate::fourshapes::hypersphere::HsSlice;
+use crate::fourshapes::hypersphere::HyperSphere;
 pub mod fourshapes;
 

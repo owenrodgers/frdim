@@ -32,6 +32,11 @@ impl Mesh{
             self.triangles.push(tri);
         }
     }
+    pub fn scale_mesh(&mut self, scalar: f32) {
+        for tri in self.triangles.iter_mut() {
+            tri.scale(scalar);
+        }
+    }
 
 
     // hate this code
