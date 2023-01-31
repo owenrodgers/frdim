@@ -29,6 +29,7 @@ const FOV: f32 = 90.0;
 /*
 System for propogating errors up call stack needs to be in place with Option<> and Result<>
 occlusion needs to be fixed, rendering faces that should not be seen
+export LIBRARY_PATH="$LIBRARY_PATH:$(brew --prefix)/lib"
 */
 
 
@@ -77,14 +78,8 @@ pub fn main() -> Result<(), String> {
         canvas.set_draw_color(Color::RGB(5, 52, 99));
         canvas.clear();
         
-        if hsp.valid_slice() { 
-            render_slice(&mut canvas, &hsp, &projection_matrix).ok(); 
-            println!("{}", hsp.valid_slice()); 
-            println!("slice radius: {}", hsp.slice_radius);
-            //println!("")
-        } else {
-            println!("invalid");
-        }
+        if hsp.valid_slice() { render_slice(&mut canvas, &hsp, &projection_matrix).ok(); }
+        
         hsp.update_mesh(cw0);
         cw0 = x.cos() + 1.0;
         x += 0.05;
