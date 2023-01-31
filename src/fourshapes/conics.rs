@@ -56,10 +56,10 @@ impl ConicSection{
     }
     fn compute_conic_coefficients(cone: &Cone, plane: &Plane) -> [f32; 6] {
         let mut cfs: [f32; 6] = [0.0; 6];
-        cfs[0] = plane.c * plane.c * cone.m * cone.m - plane.a * plane.a; // A
+        cfs[0] = plane.c * plane.c * cone.m * cone.m - plane.a * plane.a;                       // A
         cfs[1] = -2.0 * plane.a * plane.b;                                                      // B
-        cfs[2] = plane.c * plane.c * cone.m * cone.m - plane.b * plane.b; // C
-        cfs[3] = 2.0 * plane.a * plane.b;                                                       // D
+        cfs[2] = plane.c * plane.c * cone.m * cone.m - plane.b * plane.b;                       // C
+        cfs[3] = 2.0 * plane.a * plane.d;                                                       // D
         cfs[4] = 2.0 * plane.b * plane.d;                                                       // E
         cfs[5] = -1.0 * plane.d * plane.d;                                                      // F
         cfs
