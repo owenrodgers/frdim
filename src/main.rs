@@ -1,8 +1,9 @@
 extern crate sdl2;
+use sdl2::rect::Rect;
 use sdl2::event::Event;
 use sdl2::pixels::Color;
 use sdl2::render::WindowCanvas;
-
+use sdl2::gfx::primitives::DrawRenderer;
 use std::time::Duration;
 
 use crate::la::vec3f::Vec3f;
@@ -16,6 +17,7 @@ use crate::meshrender::render::{fill_tri};
 pub mod meshrender;
 
 use crate::fourshapes::hypersphere::HyperSphere;
+use crate::fourshapes::conics::{ConicSection, Plane, Cone};
 pub mod fourshapes;
 
 
@@ -55,6 +57,14 @@ pub fn main() -> Result<(), String> {
     let mut hsp = HyperSphere::new(hs_radius, init_w0);
     //hsp.update_mesh(1.0);
 
+    let c_stp = 6.0;
+    let plane: [f32; 4] = [-1.0, 4.0, -0.5, 10.0];
+
+    let c: Cone = Cone::new(c_stp);
+    let p: Plane = Plane::new(plane[0], plane[1], plane[2], plane[3]);
+    let mut csec: ConicSection = ConicSection::new(c, p);
+
+
     let mut projection_matrix = Mat4x4::new();
     projection_matrix.projection(&SCREEN_HEIGHT, &SCREEN_WIDTH, &FOV, &FFAR, &FNEAR);
 
@@ -68,6 +78,7 @@ pub fn main() -> Result<(), String> {
                 Event::Quit { .. } => break 'main,
                 Event::MouseButtonDown { x, y, .. } => {
                     println!("Mouse button down at ({},{})", x, y);
+                    
                 }
                 _ => { }
                 
@@ -78,8 +89,9 @@ pub fn main() -> Result<(), String> {
         canvas.set_draw_color(Color::RGB(5, 52, 99));
         canvas.clear();
         
-        if hsp.valid_slice() { render_slice(&mut canvas, &hsp, &projection_matrix).ok(); }
-        
+        //if hsp.valid_slice() { render_slice(&mut canvas, &hsp, &projection_matrix).ok(); }
+        canvas.set_draw_color(Color::RGB(255, 255, 255));
+        render_conic_section(&mut canvas, &csec);
         hsp.update_mesh(cw0);
         cw0 = x.cos() + 1.0;
         x += 0.05;
@@ -89,6 +101,35 @@ pub fn main() -> Result<(), String> {
         
     }
     Ok(())
+}
+
+fn render_conic_section(c: &mut WindowCanvas, conic_section: &ConicSection) -> Result<(), String> {
+    
+    // quick and dirty:
+    // for each pixel in the frame check if 
+    // Ax^2 + Bxy + Cy^2 + Dx + Ey + F = 0
+    // conic_coefficients = [A, B, C, D, E, F]
+
+    // desired approach:
+    // compute sets of points beforehand
+    // render lines connecting
+    // set precision value for subdivisions
+
+    let vertices = conic_section.compute_conic(400, -400, 400, -400, 400);
+    //let mut points = vertices.iter().zip(vertices.iter().skip(1)).collect::<Vec<_>>();
+    //println!("{:?}", vertices.len());
+    for p in vertices.iter() {
+        let (x,y) = p;
+        c.fill_rect(Rect::new(*x, *y, 4, 4));
+    }
+
+    Ok(())
+}
+
+fn cart_to_screen(cartesian_x: f32, cartesian_y: f32) -> (i16, i16) {
+    let scx = cartesian_x + SCREEN_WIDTH / 2.0;
+    let scy = SCREEN_HEIGHT / 2.0 - cartesian_y;
+    (scx as i16, scy as i16)
 }
 
 // render a slice of 4d object
@@ -139,9 +180,6 @@ fn find_color(product: f32, radius: f32) -> (u8, u8, u8) {
     let cvb = (82.0 * product ) as u8;
     (cvr, cvg, cvb)
 }
-
-
-
 
 // render and obj file
 fn render(c: &mut WindowCanvas, mesh: &Mesh, pmat: &Mat4x4, rmx: &Mat3x3, rmy: &Mat3x3, rmz: &Mat3x3) -> Result<(),String>{

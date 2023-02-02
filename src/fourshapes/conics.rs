@@ -17,6 +17,9 @@ use crate::Mesh;
         D = 2.0 * a * d
         E = 2.0 * b * d
         F = -1.0 * d^2
+
+    https://www.desmos.com/calculator/inzny6ittx 
+    
 */
 
 // render the conic section
@@ -29,7 +32,6 @@ impl Cone{
         Cone{m: steepness}
     }
 }
-
 
 pub struct Plane{
     pub a: f32,
@@ -64,5 +66,55 @@ impl ConicSection{
         cfs[5] = -1.0 * plane.d * plane.d;                                                      // F
         cfs
     }
+    pub fn is_valid(&self, x: f32, y: f32, precision: u32) -> f32 {
+        fn round(x: f32, decimals: u32) -> f32 {
+            let y = 10i32.pow(decimals) as f32;
+            (x * y).round() / y
+        }
+
+        let c: [f32; 6] = self.conic_coef;
+        let evaluated: f32 = round((c[0] * x * x) + (c[1] * x * y) + (c[2] * y * y) + (c[3] * x) + (c[4] * y) + c[5], precision);
+
+        evaluated
+    }
+    fn valid(x: f32, y: f32, c: [f32; 6], precision: u32) -> bool {
+        fn round(x: f32, decimals: u32) -> f32 {
+            let y = 10i32.pow(decimals) as f32;
+            (x * y).round() / y
+        }
+        let evaluated: f32 = round((c[0] * x * x) + (c[1] * x * y) + (c[2] * y * y) + (c[3] * x) + (c[4] * y) + c[5], precision);
+        if evaluated == 0.0 {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    fn cart_to_screen(cartesian_x: f32, cartesian_y: f32, sc_width: f32, sc_height: f32) -> (i32, i32) {
+        let scx = cartesian_x + sc_width / 2.0;
+        let scy = sc_height / 2.0 - cartesian_y;
+        (scx as i32, scy as i32)
+    }
+
+    pub fn compute_conic(&self, samples: u32, xmin: i32, xmax: i32, ymin: i32, ymax:i32) -> Vec<(i32, i32)> {
+        // return set of n points that represent a valid conic section in  **** SCREEN SPACE ****
+        // specify precision with samples
+        let xrange: i32 = xmax + xmin.abs();
+        let yrange: i32 = ymax + ymin.abs();
+        let xstep: usize = 1; //(xrange as f32 / samples as f32) as usize;
+        let mut vertices: Vec<(i32, i32)> = Vec::new();
+
+        for c_x in (xmin..xmax).step_by(xstep) {
+            for c_y in (ymin..ymax) {
+
+                if Self::valid(c_x as f32, c_y as f32, self.conic_coef, 0) {
+                    let (tx, ty) = Self::cart_to_screen(c_x as f32, c_y as f32, xrange as f32, yrange as f32);
+                    vertices.push((tx, ty));
+                }
+            }
+        }
+        vertices
+    }
+
 
 }
