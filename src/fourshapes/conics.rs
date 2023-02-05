@@ -83,7 +83,7 @@ impl ConicSection{
             (x * y).round() / y
         }
         let evaluated: f32 = round((c[0] * x * x) + (c[1] * x * y) + (c[2] * y * y) + (c[3] * x) + (c[4] * y) + c[5], precision);
-        if evaluated == 0.0 {
+        if evaluated < 400.0 && evaluated > -400.0 {
             return true;
         } else {
             return false;
@@ -96,17 +96,17 @@ impl ConicSection{
         (scx as i32, scy as i32)
     }
 
-    pub fn compute_conic(&self, samples: u32, xmin: i32, xmax: i32, ymin: i32, ymax:i32) -> Vec<(i32, i32)> {
-        // return set of n points that represent a valid conic section in  **** SCREEN SPACE ****
+    pub fn compute_conic(&mut self, xmin: i32, xmax: i32, ymin: i32, ymax:i32) -> Vec<(i32, i32)> {
+        // return set of points that represent a valid conic section in  **** SCREEN SPACE ****
         // specify precision with samples
+        self.conic_coef = Self::compute_conic_coefficients(&self.cone, &self.plane);
         let xrange: i32 = xmax + xmin.abs();
         let yrange: i32 = ymax + ymin.abs();
-        let xstep: usize = 1; //(xrange as f32 / samples as f32) as usize;
+        let xstep: usize = 2; //(xrange as f32 / samples as f32) as usize;
         let mut vertices: Vec<(i32, i32)> = Vec::new();
 
         for c_x in (xmin..xmax).step_by(xstep) {
-            for c_y in (ymin..ymax) {
-
+            for c_y in ymin..ymax {
                 if Self::valid(c_x as f32, c_y as f32, self.conic_coef, 0) {
                     let (tx, ty) = Self::cart_to_screen(c_x as f32, c_y as f32, xrange as f32, yrange as f32);
                     vertices.push((tx, ty));

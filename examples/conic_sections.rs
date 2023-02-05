@@ -1,44 +1,22 @@
 
-/*
-#[allow(unused_imports)]
-#[allow(dead_code)]
 extern crate sdl2;
 use sdl2::rect::Rect;
 use sdl2::event::Event;
 use sdl2::pixels::Color;
 use sdl2::EventPump;
 use sdl2::render::WindowCanvas;
-use sdl2::gfx::primitives::DrawRenderer;
 use std::time::Duration;
 use core::f32::consts::PI;
 
-use crate::la::vec3f::Vec3f;
-use crate::la::mat3x3::Mat3x3;
-use crate::la::mat4x4::Mat4x4;
-pub mod la;
-
-use crate::meshrender::triangle::Triangle;
-use crate::meshrender::mesh::Mesh;
-use crate::meshrender::render::{fill_tri};
-pub mod meshrender;
-
-use crate::fourshapes::hypersphere::HyperSphere;
-use crate::fourshapes::conics::{ConicSection, Plane, Cone};
-pub mod fourshapes;
-
-
-const SCREEN_WIDTH: f32 = 800.0;
-const SCREEN_HEIGHT: f32 = 800.0;
-
-const FNEAR: f32 = 1.0;
-const FFAR: f32 = 1000.0;
-const FOV: f32 = 90.0;
+extern crate frdim;
+use frdim::fourshapes::conics::{ConicSection, Plane, Cone};
 
 /*
 ls problem use:
 export LIBRARY_PATH="$LIBRARY_PATH:$(brew --prefix)/lib"
 */
-
+const SCREEN_WIDTH: f32 = 800.0;
+const SCREEN_HEIGHT: f32 = 800.0;
 
 pub fn init() -> (WindowCanvas, EventPump) {
     let sdl_context = sdl2::init().unwrap();//?;
@@ -72,7 +50,7 @@ pub fn main() -> Result<(), String> {
     let c: Cone = Cone::new(c_stp);
     let p: Plane = Plane::new(plane[0], plane[1], plane[2], plane[3]);
     let mut csec: ConicSection = ConicSection::new(c, p);
-    let mut points: Vec<(i32, i32)> = csec.compute_conic(400, -400, 400, -400, 400);
+    let mut points: Vec<(i32, i32)> = csec.compute_conic(-400, 400, -400, 400);
 
     'main: loop {
         for event in event_pump.poll_iter() {
@@ -95,7 +73,7 @@ pub fn main() -> Result<(), String> {
         render_conic_section(&mut canvas, &points)?;
         csec.plane.a = 2.0 * x.cos();
         csec.plane.d = 15.0 * (x / 2.0 * PI).sin() + 10.0;
-        points = csec.compute_conic(400, -400, 400, -400, 400);
+        points = csec.compute_conic(-400, 400, -400, 400);
 
         x += 0.05;
 
@@ -107,69 +85,14 @@ pub fn main() -> Result<(), String> {
 }
 
 fn render_conic_section(c: &mut WindowCanvas, points: &Vec<(i32, i32)>) -> Result<(), String> {
-    for p in points.iter() {
-        
+    for p in points.iter() { 
         let (x,y) = p;
         c.fill_rect(Rect::new(*x, *y, 4, 4));
     }
-
     Ok(())
 }
 
-fn cart_to_screen(cartesian_x: f32, cartesian_y: f32) -> (i16, i16) {
-    let scx = cartesian_x + SCREEN_WIDTH / 2.0;
-    let scy = SCREEN_HEIGHT / 2.0 - cartesian_y;
-    (scx as i16, scy as i16)
-}
-
-// render a slice of 4d object
-fn render_slice(c: &mut WindowCanvas, hypersphere: &HyperSphere, pmat: &Mat4x4) -> Result<(), String> {
-    let camera: Vec3f = Vec3f::new(&[0.0;3]);
-    let mut light: Vec3f = Vec3f::new(&[0.0, 0.0, -1.0]);
-
-    let mut normal: Vec3f;
-    let mut dot: f32;
-
-    let mut render_tri: Triangle;
-
-    for tri in hypersphere.slice_mesh.triangles.iter() {
-        render_tri = Triangle{ vertices: tri.vertices };
-        render_tri.translate_z(&5.0);
-
-        normal = render_tri.compute_normal();
-        normal.normalize();
-        dot = normal.dot(&(render_tri.vertices[0] - camera));
-
-        if dot < 0.0 {
-            normal = render_tri.compute_normal();
-            normal.normalize();
-            light.normalize();
-
-            let (r,g,b) = find_color(normal.dot(&light), hypersphere.slice_radius);
-
-            render_tri.project(pmat);
-            render_tri.translate_x(&1.0);
-            render_tri.translate_y(&1.0);
-            render_tri.scale_x(&(SCREEN_WIDTH*0.5));
-            render_tri.scale_y(&(SCREEN_HEIGHT*0.5));
-
-            fill_tri(c, &mut render_tri.vertices[0].xy(), 
-                        &mut render_tri.vertices[1].xy(), 
-                        &mut render_tri.vertices[2].xy(), 
-                        &[r,g,b]);
-        }
-
-    }
-    Ok(())
-}
-
-fn find_color(product: f32, radius: f32) -> (u8, u8, u8) {
-    let cvr = (74.0 * product ) as u8;
-    let cvg = (168.0 * product ) as u8;
-    let cvb = (82.0 * product ) as u8;
-    (cvr, cvg, cvb)
-}
-
+/*
 // render and obj file
 fn render(c: &mut WindowCanvas, mesh: &Mesh, pmat: &Mat4x4, rmx: &Mat3x3, rmy: &Mat3x3, rmz: &Mat3x3) -> Result<(),String>{
     // render the mesh
@@ -222,7 +145,3 @@ fn render(c: &mut WindowCanvas, mesh: &Mesh, pmat: &Mat4x4, rmx: &Mat3x3, rmy: &
 
 }
 */
-
-fn main() {
-    println!("Four dimensional shapes");
-}
