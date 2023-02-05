@@ -11,8 +11,8 @@ extern crate frdim;
 use frdim::la::vec3f::Vec3f;
 use frdim::la::mat4x4::Mat4x4;
 
-use frdim::meshrender::triangle::Triangle;
-use frdim::meshrender::render::{fill_tri};
+use frdim::meshes::triangle::Triangle;
+use frdim::rendering::render::{fill_tri};
 
 use frdim::fourshapes::hypersphere::HyperSphere;
 
