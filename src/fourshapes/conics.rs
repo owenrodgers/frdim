@@ -1,6 +1,4 @@
 
-use crate::Mesh;
-
 /*
     cone with steepness m modeled by
     (mx)^2 + (my)^2 = z^2

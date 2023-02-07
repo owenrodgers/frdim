@@ -1,136 +1,10 @@
 use::std::mem;
-use std::time::Duration;
-use core::f32::consts::PI;
 
 extern crate sdl2;
-use sdl2::EventPump;
-use sdl2::rect::Rect;
-use sdl2::event::Event;
 use sdl2::pixels::Color;
 use sdl2::render::WindowCanvas;
 use sdl2::gfx::primitives::DrawRenderer;
 
-
-use crate::{ConicSection, Plane, Cone};
-
-const SCREEN_WIDTH: f32 = 800.0;
-const SCREEN_HEIGHT: f32 = 800.0;
-
-
-/*
-
-Render object
-
-Option<Vec>  // for a conic
-Option<Mesh> // for a 3d model
-
-*/
-use crate::Mesh;
-
-const CONIC_SECTION: u8 = 0;
-const MESH_OBJECT: u8 = 1;
-const NONE: u8 = 2;
-
-pub struct RenderableObject{
-    pub flag: u8,
-    pub mesh: Option<Mesh>,              // 3d model
-    pub conic: Option<ConicSection>,    // conic section
-}
-impl RenderableObject {
-    pub fn new(mesh: Option<Mesh>, conic: Option<ConicSection>) -> RenderableObject {
-        let object_mesh: Option<Mesh> = None;
-        let object_conic: Option<ConicSection> = None;
-
-        if let Some(mesh) = object_mesh {
-            RenderableObject{flag: MESH_OBJECT, mesh: Some(mesh), conic: None}
-
-        } else if let Some(conic) = object_conic {
-            RenderableObject{flag: CONIC_SECTION, mesh: None, conic: Some(conic)}
-
-        } else {
-            RenderableObject{..Default::default()}
-        }
-    }
-}
-
-impl Default for RenderableObject{
-    fn default() -> RenderableObject{
-        RenderableObject{flag: NONE, mesh: None::<Mesh>, conic: None::<ConicSection>}
-    }
-}
-
-
-
-pub fn render_init() -> (WindowCanvas, EventPump) {
-    let sdl_context = sdl2::init().unwrap();//?;
-    let video_subsystem = sdl_context.video().unwrap();//?;
-    let window = video_subsystem
-        .window("rust sdl2 window", SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32)
-        .position_centered()
-        .opengl()
-        .build()
-        .unwrap();//?;
-    let mut canvas = window
-        .into_canvas()
-        .build()
-        .unwrap();//?;
-    let mut event_pump = sdl_context.event_pump().unwrap();
-
-    canvas.set_draw_color(Color::RGB(5, 52, 99));
-    canvas.clear();
-    canvas.present();
-
-    (canvas, event_pump)
-}
-
-// need a higher level implementation of renderable object
-pub fn render( csec: &mut ConicSection ) -> Result<(), String> {
-    let (mut canvas, mut event_pump) = render_init();
-
-    let mut x: f32 = 0.0;
-    let mut points: Vec<(i32, i32)> = csec.compute_conic(-400, 400, -400, 400);
-
-    'main: loop {
-        for event in event_pump.poll_iter() {
-            match event {
-                Event::Quit { .. } => break 'main,
-                Event::MouseButtonDown { x, y, .. } => {
-                    println!("Mouse button down at ({},{})", x, y);
-                }
-                _ => { }
-                
-            }
-
-        }
-
-        canvas.set_draw_color(Color::RGB(5, 52, 99));
-        canvas.clear();
-        
-
-        canvas.set_draw_color(Color::RGB(255, 255, 255));
-        render_conic_section(&mut canvas, &points)?;
-
-        // to avoid this
-        csec.plane.a = 2.0 * x.cos();
-        csec.plane.d = 15.0 * (x / 2.0 * PI).sin() + 10.0;
-        points = csec.compute_conic(-400, 400, -400, 400);
-
-        x += 0.05;
-
-        canvas.present();
-        ::std::thread::sleep(Duration::new(0, 1_000_000_000u32 / 30));
-        
-    }
-    Ok(())
-} 
-
-fn render_conic_section(c: &mut WindowCanvas, points: &Vec<(i32, i32)>) -> Result<(), String> {
-    for p in points.iter() { 
-        let (x,y) = p;
-        c.fill_rect(Rect::new(*x, *y, 4, 4));
-    }
-    Ok(())
-}
 
 // functions for rendering triangles
 
@@ -185,4 +59,5 @@ pub fn fill_top_flat(c: &mut WindowCanvas, v1: &[f32; 2], v2: &[f32; 2], v3: &[f
     }
     
 }
+
 
