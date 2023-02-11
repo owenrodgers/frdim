@@ -1,6 +1,7 @@
 use crate::Vec3f;
 use crate::Mat3x3;
 use crate::Mat4x4;
+
 // ---- Triangle ----
 
 pub struct Triangle{

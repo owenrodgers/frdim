@@ -59,5 +59,3 @@ pub fn fill_top_flat(c: &mut WindowCanvas, v1: &[f32; 2], v2: &[f32; 2], v3: &[f
     }
     
 }
-
-
