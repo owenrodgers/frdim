@@ -6,7 +6,7 @@ use sdl2::render::WindowCanvas;
 
 extern crate frdim;
 use frdim::la::vec3f::Vec3f;
-use frdim::la::mat4x4::Mat4x4;
+use frdim::la::matrix::Mat4x4;
 use frdim::meshes::triangle::Triangle;
 use frdim::rendering::render::fill_tri;
 use frdim::fourshapes::hypersphere::HyperSphere;
@@ -67,18 +67,18 @@ fn find_color(luminence: f32) -> (u8, u8, u8) {
 }
 
 pub fn render_init() -> (WindowCanvas, EventPump) {
-    let sdl_context = sdl2::init().unwrap();//?;
-    let video_subsystem = sdl_context.video().unwrap();//?;
+    let sdl_context = sdl2::init().unwrap();
+    let video_subsystem = sdl_context.video().unwrap();
     let window = video_subsystem
         .window("rust sdl2 window", SCREEN_WIDTH as u32, SCREEN_HEIGHT as u32)
         .position_centered()
         .opengl()
         .build()
-        .unwrap();//?;
+        .unwrap();
     let mut canvas = window
         .into_canvas()
         .build()
-        .unwrap();//?;
+        .unwrap();
     let event_pump = sdl_context.event_pump().unwrap();
 
     canvas.set_draw_color(Color::RGB(5, 52, 99));

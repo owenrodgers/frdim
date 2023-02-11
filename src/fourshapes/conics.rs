@@ -21,7 +21,8 @@
 */
 
 // render the conic section
-
+use crate::Mat2x2;
+#[derive(Default, Copy, Clone)]
 pub struct Cone{
     pub m: f32,
 }
@@ -31,6 +32,8 @@ impl Cone{
     }
 }
 
+
+#[derive(Default, Copy, Clone)]
 pub struct Plane{
     pub a: f32,
     pub b: f32,
@@ -43,6 +46,7 @@ impl Plane{
     }
 }
 
+
 pub struct ConicSection{
     pub cone: Cone,
     pub plane: Plane,
@@ -54,6 +58,73 @@ impl ConicSection{
         let conic_coef: [f32; 6] = Self::compute_conic_coefficients(&cone, &plane);
         ConicSection{cone: cone, plane: plane, conic_coef: conic_coef}
     }
+
+    pub fn get_points(&self, min_x: i32, max_x: i32, min_y: i32, max_y: i32) -> Vec<(f32, f32)> {
+        fn round(x: f32, decimals: u32) -> f32 {
+            let y = 10i32.pow(decimals) as f32;
+            (x * y).round() / y
+        }
+
+        let x_step: f32 = 0.01;
+        let y_step: f32 = 0.01;
+        let x_samples = (max_x - min_x) as f32 / x_step;
+        let y_samples = (max_y - min_y) as f32 / y_step;
+
+        let mut current_x = min_x as f32;
+        let mut current_y = min_y as f32;
+        
+        let mut points: Vec<(f32, f32)> = Vec::new();
+
+        for _x in 0..x_samples as usize {
+            for _y in 0..y_samples as usize {
+                current_y += y_step;
+
+                // if ax^2 + bxy + cy^2 = 1.0
+                // push current_x, current_y onto vector
+                let evaluation = Self::evaluate([self.conic_coef[0], self.conic_coef[1], self.conic_coef[2]], round(current_x, 2), round(current_y,2));
+                let rounded_evaluation = round(evaluation, 1);
+
+                if rounded_evaluation == 1.0 {
+                    points.push((round(current_x, 2), round(current_y,2)));
+                }
+
+            }
+            current_y = min_y as f32;
+            current_x += x_step;
+        }
+
+        return points;
+    }
+
+    fn evaluate(coefs: [f32; 3], x: f32, y: f32) -> f32 {
+        // ax^2 + bxy + cy^2
+        (coefs[0] * x * x) + (coefs[1] * x * y) + (coefs[2] * y * y)
+    }
+
+
+
+    pub fn align(&self) -> ConicSection {
+        // returns a conic section with major and minor axis aligned with x,y axis
+        // implementation is in mat2x2 along with papers
+        let charmat = Mat2x2::new([self.conic_coef[0], self.conic_coef[1]/2.0, self.conic_coef[1]/2.0, self.conic_coef[2]]);
+        println!("{}", self.conic_coef[1] * self.conic_coef[1] - 4.0 * self.conic_coef[0] * self.conic_coef[2] );
+        // eigenvalues -> eigenvectors
+        let (lambda1, lambda2) = charmat.eigenvalues();
+        let (eigenvector_1,eigenvector_2) = charmat.eigenvectors(lambda1, lambda2);
+
+        // P is a rotation matrix and scaled by magnitude of the eigenvectors (1/ sqrt(2))
+        let mut p = Mat2x2::new([eigenvector_1[0], eigenvector_2[0], eigenvector_1[1], eigenvector_2[1]]);
+        let mag: f32 = (eigenvector_1[0] * eigenvector_1[0] + eigenvector_1[1] * eigenvector_1[1]).sqrt();
+        p *= 1.0 / mag;
+
+        // P^T * A * P   
+        // https://math.emory.edu/~lchen41/teaching/2020_Fall/Section_8-2.pdf 
+        let aligned_coefficients = p.transpose() * charmat * p; 
+
+        let matrix_entries = aligned_coefficients.to_array(); // [[a,b], [b,c]]
+        ConicSection{cone: self.cone, plane: self.plane, conic_coef: [matrix_entries[0], matrix_entries[1], matrix_entries[3], 0.0, 0.0, 0.0]}
+    }
+
     fn compute_conic_coefficients(cone: &Cone, plane: &Plane) -> [f32; 6] {
         let mut cfs: [f32; 6] = [0.0; 6];
         cfs[0] = plane.c * plane.c * cone.m * cone.m - plane.a * plane.a;                       // A
