@@ -6,11 +6,7 @@ use sdl2::pixels::Color;
 use sdl2::render::WindowCanvas;
 
 extern crate frdim;
-use frdim::la::vec3f::Vec3f;
-use frdim::la::matrix::Mat4x4;
-use frdim::meshes::triangle::Triangle;
-use frdim::rendering::render::fill_tri;
-use frdim::fourshapes::hypersphere::HyperSphere;
+
 
 use std::time::Duration;
 

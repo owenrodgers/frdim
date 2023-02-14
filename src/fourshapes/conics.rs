@@ -22,6 +22,7 @@
 
 // render the conic section
 use crate::Mat2x2;
+
 #[derive(Default, Copy, Clone)]
 pub struct Cone{
     pub m: f32,
@@ -45,8 +46,6 @@ impl Plane{
         Plane{ a:a, b:b, c:c, d:d}
     }
 }
-
-
 pub struct ConicSection{
     pub cone: Cone,
     pub plane: Plane,
@@ -72,14 +71,12 @@ impl ConicSection{
 
         let mut current_x = min_x as f32;
         let mut current_y = min_y as f32;
-        
+
         let mut points: Vec<(f32, f32)> = Vec::new();
 
         for _x in 0..x_samples as usize {
             for _y in 0..y_samples as usize {
-                current_y += y_step;
-
-                // if ax^2 + bxy + cy^2 = 1.0
+                current_y += y_step; 
                 // push current_x, current_y onto vector
                 let evaluation = Self::evaluate([self.conic_coef[0], self.conic_coef[1], self.conic_coef[2]], round(current_x, 2), round(current_y,2));
                 let rounded_evaluation = round(evaluation, 1);
@@ -101,13 +98,11 @@ impl ConicSection{
         (coefs[0] * x * x) + (coefs[1] * x * y) + (coefs[2] * y * y)
     }
 
-
-
     pub fn align(&self) -> ConicSection {
         // returns a conic section with major and minor axis aligned with x,y axis
         // implementation is in mat2x2 along with papers
         let charmat = Mat2x2::new([self.conic_coef[0], self.conic_coef[1]/2.0, self.conic_coef[1]/2.0, self.conic_coef[2]]);
-        println!("{}", self.conic_coef[1] * self.conic_coef[1] - 4.0 * self.conic_coef[0] * self.conic_coef[2] );
+
         // eigenvalues -> eigenvectors
         let (lambda1, lambda2) = charmat.eigenvalues();
         let (eigenvector_1,eigenvector_2) = charmat.eigenvectors(lambda1, lambda2);

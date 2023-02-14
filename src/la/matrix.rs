@@ -9,6 +9,8 @@
 // multiply operator: (Mat2x2 * Mat2x2) and (scalar * Mat2x2)
 // transpose
 use std::ops::{Mul, MulAssign};
+use crate::Vec3f;
+
 pub struct Mat2x2 {
     pub e: [f32; 4],
 }
@@ -76,6 +78,7 @@ impl MulAssign<f32> for Mat2x2 {
 
 
 // ---- 3x3 Matrices ----
+#[derive(Copy, Clone)]
 pub struct Mat3x3{
     pub e: [f32; 9],
 }
@@ -91,7 +94,7 @@ impl Mat3x3{
         self.e[7] = theta.sin();
         self.e[8] = theta.cos();
     }
-    pub fn rotation_y(&mut self, theta: &f32){
+    pub fn rotation_y(&mut self, theta: f32){
         self.e[0] = theta.cos();
         self.e[2] = theta.sin();
         self.e[4] = 1.0;
@@ -104,6 +107,15 @@ impl Mat3x3{
         self.e[3] = theta.sin();
         self.e[4] = theta.cos();
         self.e[8] = 1.0;
+    }
+}
+
+impl Mul<Vec3f> for Mat3x3 {
+    type Output = Vec3f;
+    fn mul(self, v: Vec3f) -> Vec3f {
+        Vec3f::new(&[self.e[0]*v.e[0] + self.e[1]*v.e[1] + self.e[2]*v.e[2],
+                    self.e[3]*v.e[0] + self.e[4]*v.e[1] + self.e[5]*v.e[2],
+                    self.e[6]*v.e[0] + self.e[7]*v.e[1] + self.e[8]*v.e[2]])
     }
 }
 
