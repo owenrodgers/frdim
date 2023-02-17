@@ -69,7 +69,8 @@ fn main() -> Result<(), String>{
     let simple_coefficients = [10.0, 12.0, 10.0, 0.0, 0.0, 0.0];
     let simple_conic = ConicSection{cone: c, plane: p, conic_coef: simple_coefficients};
     let aligned_simple = simple_conic.align();
-    println!("{:?}", aligned_simple.conic_coef);
+    println!("\nOriginal (Red)  {:?}", simple_coefficients);
+    println!("Aligned (Black) {:?}\n", aligned_simple.conic_coef);
     // good
 
     // points

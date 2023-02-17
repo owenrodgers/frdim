@@ -117,7 +117,7 @@ impl ConicSection{
         let aligned_coefficients = p.transpose() * charmat * p; 
 
         let matrix_entries = aligned_coefficients.to_array(); // [[a,b], [b,c]]
-        ConicSection{cone: self.cone, plane: self.plane, conic_coef: [matrix_entries[0], matrix_entries[1], matrix_entries[3], 0.0, 0.0, 0.0]}
+        ConicSection{cone: self.cone, plane: self.plane, conic_coef: [matrix_entries[0], matrix_entries[1], matrix_entries[3], 0.0, 0.0, self.conic_coef[5]]}
     }
 
     fn compute_conic_coefficients(cone: &Cone, plane: &Plane) -> [f32; 6] {
@@ -126,8 +126,8 @@ impl ConicSection{
         cfs[1] = -2.0 * plane.a * plane.b;                                                      // B
         cfs[2] = plane.c * plane.c * cone.m * cone.m - plane.b * plane.b;                       // C
         cfs[3] = 2.0 * plane.a * plane.d;                                                       // D
-        cfs[4] = 2.0 * plane.b * plane.d;                                                       // E
-        cfs[5] = -1.0 * plane.d * plane.d;                                                      // F
+        cfs[4] = 2.0 * plane.b * plane.d;                                                      // E
+        cfs[5] = plane.d * plane.d;                                                      // F
         cfs
     }
     pub fn is_valid(&self, x: f32, y: f32, precision: u32) -> f32 {

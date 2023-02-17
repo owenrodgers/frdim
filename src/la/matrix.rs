@@ -87,7 +87,7 @@ impl Mat3x3{
         let dat: [f32; 9] = [0.0; 9];
         Mat3x3{ e: dat}
     }
-    pub fn rotation_x(&mut self, theta: &f32){
+    pub fn rotation_x(&mut self, theta: f32){
         self.e[0] = 1.0;
         self.e[4] = theta.cos();
         self.e[5] = -1.0 * theta.sin();
@@ -101,7 +101,7 @@ impl Mat3x3{
         self.e[6] = -1.0 * theta.sin();
         self.e[8] = theta.cos();
     }
-    pub fn rotation_z(&mut self, theta: &f32){
+    pub fn rotation_z(&mut self, theta: f32){
         self.e[0] = theta.cos();
         self.e[1] = -1.0 * theta.sin();
         self.e[3] = theta.sin();
@@ -129,7 +129,7 @@ impl Mat4x4 {
         Mat4x4{ e : dat }
     }
     pub fn projection(&mut self, h: &f32, w: &f32, fov: &f32, zfar: &f32, znear: &f32){
-        let a: f32 = w / h;
+        let a: f32 = h / w;
         let f: f32 = 1.0 / (fov*0.5).tan();
         let q: f32 = zfar / (zfar - znear);
     
@@ -137,6 +137,6 @@ impl Mat4x4 {
         self.e[5] = f;
         self.e[10] = q;
         self.e[11] = 1.0;
-        self.e[14] = -1.0 * znear * q;
+        self.e[14] = (-1.0 * zfar * znear) / (zfar - znear);
     }
 }

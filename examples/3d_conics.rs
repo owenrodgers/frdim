@@ -58,6 +58,7 @@ fn main() -> Result<(), String>{
     // pointcloud for hyperconic
     let mut hyperconic: HyperConic = HyperConic::new(aligned_simple);
     //println!("{}", pointcloud.len());
+    println!("Is this doing anything?");
     render(&mut hyperconic)?;
     Ok(())
 }
@@ -67,7 +68,8 @@ fn main() -> Result<(), String>{
 
 pub fn render(hyperconic: &mut HyperConic) -> Result<(), String> {
     let (mut canvas, mut event_pump) = render_init();
-    let mut pset_1 = hyperconic.revolve(15.0);
+    let degree_increment = 10.0;
+    let mut pset_1 = hyperconic.revolve(degree_increment);
 
     let mut projection_matrix: Mat4x4 = Mat4x4::new();
     projection_matrix.projection(&SCREEN_HEIGHT, &SCREEN_WIDTH, &FOV, &FFAR, &FNEAR);
@@ -87,7 +89,7 @@ pub fn render(hyperconic: &mut HyperConic) -> Result<(), String> {
         // shift ConicSection coefficients
         hyperconic.conic.conic_coef = [3.0, 0.0, 10.0 * x.cos(), 0.0, 0.0, 0.0];
         x += x_increment;
-        pset_1 = hyperconic.revolve(15.0);
+        pset_1 = hyperconic.revolve(degree_increment);
         // revolve again
         
         canvas.present();
