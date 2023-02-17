@@ -10,6 +10,7 @@ use crate::sdl2::gfx::primitives::DrawRenderer;
 extern crate frdim;
 use frdim::la::vec3f::Vec3f;
 use frdim::la::matrix::{Mat4x4, Mat3x3};
+use frdim::meshes::surfacemesh::Surface;
 
 use std::time::Duration;
 use std::f32::consts::PI;
@@ -33,11 +34,13 @@ fn main() -> Result<(), String>{
     Ok(())
 }
 
-const CONE: u8 = 1;
 
 
-pub fn populate_vb(vertex_buffer: &mut Vec<Vec3f>, surface_type: u8) {
 
+
+/*
+pub fn populate_vb(vertex_buffer: &mut Vec<Vec3f>, surface: Surface) {
+    /*
     // https://www.geogebra.org/m/BjV7cNwb
     for v in (0..10).step_by(1) {
         let t_param = v as f32 / 50.0;
@@ -49,44 +52,49 @@ pub fn populate_vb(vertex_buffer: &mut Vec<Vec3f>, surface_type: u8) {
             vertex_buffer.push(Vec3f::from([x,y,z]));
         }
     }
+    */
 
-}
+    
 
-pub fn solve_surface(surface: u8, t: f32, theta: f32) -> (f32, f32, f32) {
-    match surface {
-        CONE => {
-            let x: f32 = t * theta.cos();
-            let y: f32 = t * theta.sin();
-            let z: f32 = t;
-            (x,y,z)
+    for v in (0..180).step_by(30) {
+        for u in (0..360).step_by(4) {
+            let psi = d2rad(u as f32); //   u
+            let theta = d2rad(v as f32); // v
+            let scale: f32 = 1.0 / 10.0;
+
+            let x = scale * psi.cos() * theta.sin();
+            let y = scale * psi.sin() * theta.sin();
+            let z = scale * theta.cos();
+            vertex_buffer.push(Vec3f::from([x,y,z]));
+
         }
-        _ => {
-            // have a cone for your negligence
-            let x: f32 = t * theta.cos();
-            let y: f32 = t * theta.sin();
-            let z: f32 = t;
-            (x,y,z)
+    }
+
+    for v in (0..180).step_by(30) {
+        for u in (0..360).step_by(4) {
+            let psi = d2rad(u as f32); //   u
+            let theta = d2rad(v as f32); // v
+            let scale: f32 = 1.0 / 10.0;
+
+            let x = scale * psi.cos() * theta.sin();
+            let y = scale * psi.sin() * theta.sin();
+            let z = scale * theta.cos();
+            vertex_buffer.push(Vec3f::from([x,z,y]));
+
         }
     }
 }
-
-
-
+*/
 
 pub fn render() -> Result<(), String> {
     let (mut canvas, mut event_pump) = render_init();
+    let cool_surface: Surface = Surface::new(3);
 
     let mut vertex_buffer: Vec<Vec3f> = Vec::new();
-    populate_vb(&mut vertex_buffer, 1);
+    cool_surface.fill_vertexbuffer(&mut vertex_buffer);
 
-    // test x,y,z
-    /*
-    for i in 0..10 {
-        vertex_buffer.push(Vec3f::from([(i as f32 / 10.0), 0.0, 0.0]));
-        vertex_buffer.push(Vec3f::from([0.0, (i as f32 / 10.0), 0.0]));
-        vertex_buffer.push(Vec3f::from([0.0, 0.0, (i as f32 / 10.0)]));
-    }
-    */
+    //populate_vb(&mut vertex_buffer, cone);
+
     let mut rotation_y = Y_ROTATION;
     let mut rotation_x = X_ROTATION;
     let rot_inc = 5.0;
@@ -99,11 +107,9 @@ pub fn render() -> Result<(), String> {
                 Event::KeyDown { keycode: Some(Keycode::Left  ), .. } => rotation_y += rot_inc,
                 Event::KeyDown { keycode: Some(Keycode::Down  ), .. } => rotation_x -= rot_inc,
                 Event::KeyDown { keycode: Some(Keycode::Up    ), .. } => rotation_x += rot_inc,
-            
                 _ => { } } }
         
         let rotations: [f32; 2] = [rotation_x, rotation_y];
-        //println!("{:?}", rotations);
         canvas.set_draw_color(Color::RGB(25, 25, 25));
         canvas.clear();
 
@@ -125,11 +131,13 @@ pub fn render_vertex_buffer(c: &mut WindowCanvas, vb: &Vec<Vec3f>, rotations: &[
 
 
     for vertex in vb.iter() {
-
+        let z = 10.0 * vertex.e[2];
+        //println!("{}", z);
         let render_point = apply_projective_transformations(vertex, rotations, offsets);
 
         if (render_point.e[0] < SCREEN_WIDTH && render_point.e[0] > 0.0 ) && (render_point.e[1] < SCREEN_WIDTH && render_point.e[1] > 0.0 ) {
-            c.set_draw_color(Color::RGB(150, 150, 150));
+            let (r,g,b) = lerpcolor((222.0, 31.0, 56.0), (76.0, 200.0, 237.0), z );
+            c.set_draw_color(Color::RGB(r,g,b));
             c.fill_rect(Rect::new(render_point.e[0] as i32, render_point.e[1] as i32, 4, 4))?;
         } 
         
@@ -221,4 +229,18 @@ pub fn render_init() -> (WindowCanvas, EventPump) {
 
 pub fn d2rad(degrees: f32) -> f32 {
     return degrees * (PI / 180.0); 
+}
+
+pub fn lerpcolor(color_1: (f32, f32, f32), color_2: (f32, f32, f32), z: f32) -> (u8, u8, u8) {
+    fn lerp(v0: f32, v1: f32, t: f32) -> f32 {
+        (1.0 - t) * v0 + t * v1
+    }
+    let (r1,g1,b1) = color_1;
+    let (r2,g2,b2) = color_2;
+    let normz = z;
+
+    let r = lerp(r1, r2, normz);
+    let g = lerp(g1, g2, normz);
+    let b = lerp(b1, b2, normz);
+    (r as u8,g as u8,b as u8)
 }
