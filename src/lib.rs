@@ -16,8 +16,8 @@ pub mod meshes;
 pub mod rendering;
 
 //use crate::fourshapes::hypersphere::HyperSphere;
-//use crate::fourshapes::conics::Cone;
-//use crate::fourshapes::conics::Plane;
+use crate::fourshapes::conics::Cone;
+use crate::fourshapes::conics::Plane;
 use crate::fourshapes::conics::ConicSection;
 pub mod fourshapes;
 

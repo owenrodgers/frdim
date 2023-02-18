@@ -22,6 +22,8 @@
 
 // render the conic section
 use crate::Mat2x2;
+use crate::Vec3f;
+use crate::meshes::surfacemesh::Surface;
 
 #[derive(Default, Copy, Clone)]
 pub struct Cone{
@@ -52,11 +54,63 @@ pub struct ConicSection{
     pub conic_coef: [f32; 6],
 }
 
+const SPHERE: u8 = 1;
+const ELLIPSOID: u8 = 2;
+const HYPERBOLOID: u8 = 3;
+const PARABOLOID: u8 = 4;
+
+
 impl ConicSection{
     pub fn new(cone: Cone, plane: Plane) -> ConicSection {
         let conic_coef: [f32; 6] = Self::compute_conic_coefficients(&cone, &plane);
         ConicSection{cone: cone, plane: plane, conic_coef: conic_coef}
     }
+    pub fn surface_data(&self) -> Vec<Vec3f> {
+        // categorize based on the discriminant
+        // b^2 - 4ac
+        let discriminant = self.conic_coef[1] * self.conic_coef[1] - 4.0 * self.conic_coef[0] * self.conic_coef[2];
+        let surface: Surface;
+
+        if discriminant < 0.0 {  
+            if self.conic_coef[0] == self.conic_coef[2] {
+                surface = Surface::new(SPHERE)
+            } else {
+                surface = Surface::new(ELLIPSOID);
+            }
+
+        } else if discriminant > 0.0 { 
+            surface = Surface::new(HYPERBOLOID) 
+
+        } else {  
+            surface = Surface::new(PARABOLOID)
+        }
+
+        let vertex_data: Vec<Vec3f> = surface.vertices(self.conic_coef);
+        return vertex_data;
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     pub fn get_points(&self, min_x: i32, max_x: i32, min_y: i32, max_y: i32) -> Vec<(f32, f32)> {
         fn round(x: f32, decimals: u32) -> f32 {

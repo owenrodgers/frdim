@@ -27,73 +27,29 @@ const Z_ROTATION: f32 = 0.0;
 
 const Z_OFFSET:f32 = 0.0;
 
+/*
+const SPHERE: u8 = 1;
+const ELLIPSOID: u8 = 2;
+const HYPERBOLOID: u8 = 3;
+const PARABOLOID: u8 = 4;
+
+surface cheat sheet
+*/
+
 fn main() -> Result<(), String>{
     println!("Surface meshes");
     println!("x-axis: RED | y-axis: GREEN | z-axis: BLUE");
+    
     render()?;
     Ok(())
 }
 
-
-
-
-
-/*
-pub fn populate_vb(vertex_buffer: &mut Vec<Vec3f>, surface: Surface) {
-    /*
-    // https://www.geogebra.org/m/BjV7cNwb
-    for v in (0..10).step_by(1) {
-        let t_param = v as f32 / 50.0;
-        for u in 0..360 {
-            let theta: f32 = u as f32;
-            let (x,y,z) = solve_surface(surface_type, t_param, theta);
-
-
-            vertex_buffer.push(Vec3f::from([x,y,z]));
-        }
-    }
-    */
-
-    
-
-    for v in (0..180).step_by(30) {
-        for u in (0..360).step_by(4) {
-            let psi = d2rad(u as f32); //   u
-            let theta = d2rad(v as f32); // v
-            let scale: f32 = 1.0 / 10.0;
-
-            let x = scale * psi.cos() * theta.sin();
-            let y = scale * psi.sin() * theta.sin();
-            let z = scale * theta.cos();
-            vertex_buffer.push(Vec3f::from([x,y,z]));
-
-        }
-    }
-
-    for v in (0..180).step_by(30) {
-        for u in (0..360).step_by(4) {
-            let psi = d2rad(u as f32); //   u
-            let theta = d2rad(v as f32); // v
-            let scale: f32 = 1.0 / 10.0;
-
-            let x = scale * psi.cos() * theta.sin();
-            let y = scale * psi.sin() * theta.sin();
-            let z = scale * theta.cos();
-            vertex_buffer.push(Vec3f::from([x,z,y]));
-
-        }
-    }
-}
-*/
-
 pub fn render() -> Result<(), String> {
     let (mut canvas, mut event_pump) = render_init();
-    let cool_surface: Surface = Surface::new(3);
+    let cool_surface: Surface = Surface::new(4);
 
     let mut vertex_buffer: Vec<Vec3f> = Vec::new();
     cool_surface.fill_vertexbuffer(&mut vertex_buffer);
-
-    //populate_vb(&mut vertex_buffer, cone);
 
     let mut rotation_y = Y_ROTATION;
     let mut rotation_x = X_ROTATION;
