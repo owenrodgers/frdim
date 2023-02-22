@@ -91,27 +91,6 @@ impl ConicSection{
 
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     pub fn get_points(&self, min_x: i32, max_x: i32, min_y: i32, max_y: i32) -> Vec<(f32, f32)> {
         fn round(x: f32, decimals: u32) -> f32 {
             let y = 10i32.pow(decimals) as f32;
