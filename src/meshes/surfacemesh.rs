@@ -52,7 +52,7 @@ impl Surface {
                 Surface{flag: PARABOLOID, vmin: 0, vmax: 10, vstep: 1, umin: 0, umax: 360, ustep: 4}
             }
             PLANE => {
-                Surface{flag: PLANE, vmin: 0, vmax: 100, vstep: 1, umin: 0, umax: 100, ustep: 1}
+                Surface{flag: PLANE, vmin: 0, vmax: 10, vstep: 1, umin: 0, umax: 10, ustep: 1}
             }
             CONE => { 
                 Surface{flag: CONE, vmin: 0, vmax: 10, vstep: 1, umin: 0, umax: 360, ustep: 1} 
@@ -82,29 +82,34 @@ impl Surface {
 
     }
     pub fn solve(surface_type: u8, v_parameter: f32, u_parameter: f32, optional_parameters: &[f32; 6]) -> (f32, f32, f32) {
-        let scale: f32 = 1.0 / 100.0;
+        let scale: f32 = 1.0 / 20.0;
 
         match surface_type {
             CONE => {
                 // in this case v = t (y coordinate) and u = theta
                 // so theta (v) needs to be converted to radians
-                // the optional parameters come in as the steepness
-                // just the first one
+                // the optional parameters come in as the steepness and height
+
+                let height = optional_parameters[1];
+                let steepness = optional_parameters[0];
+                let scale = height / (200.0 * steepness);
+
                 let theta = Self::d2rad(u_parameter);
-                let x = (v_parameter / 50.0) * theta.cos();
-                let y = (v_parameter / 50.0) * theta.sin();
-                let z = optional_parameters[0] * v_parameter / 50.0;
-                (x,z,y)
+                let x = scale * v_parameter * theta.cos();
+                let y = scale * v_parameter * theta.sin();
+                let z = scale * optional_parameters[0] * v_parameter;
+                (x,y,z)
             }
             PLANE => {
+                let k: f32 = 1.0 / 20.0;
                 let a = optional_parameters[0];
                 let b = optional_parameters[1];
                 let c = optional_parameters[2];
                 let d = optional_parameters[3];
                 
-                let x = a * u_parameter as f32 / 100.0;
-                let y = b * v_parameter as f32 / 100.0;
-                let z = c * v_parameter as f32 / 100.0;
+                let x = k * u_parameter as f32;
+                let y = k * v_parameter as f32;
+                let z = k * (1.0 / c) * (d - a * u_parameter as f32 - b * v_parameter as f32);
                 (x,y,z)
             }
             ELLIPSOID => {
@@ -143,7 +148,7 @@ impl Surface {
             }
             PARABOLOID => {
                 let theta = Self::d2rad(u_parameter);
-                let v: f32 = v_parameter as f32 / 10.0;
+                let v: f32 = v_parameter;
                 //let scale: f32 = 0.2;
                 let a: f32 = optional_parameters[0];
                 let b: f32 = optional_parameters[2];
@@ -165,7 +170,7 @@ impl Surface {
                 (x,y,z)
             }
             HYPERBOLIC_PARABOLOID => {
-                let scale: f32 = 1.0 / 500.0;
+                //let scale: f32 = 1.0 / 500.0;
                 let x = scale * v_parameter;
                 let y = scale * u_parameter;
                 let z = 2.0 * (x * x) -  2.0 * (y * y);

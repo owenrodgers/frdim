@@ -46,9 +46,9 @@ use frdim::meshes::surfacemesh::Surface;
 
 
 fn main() -> Result<(), String>{
-    println!("Full demo biatch");
     println!("Coordinate system on screen is -0.5 to +0.5");
     println!("x-axis: RED | y-axis: GREEN | z-axis: BLUE");
+    //
 
     render()?;
 
@@ -115,23 +115,19 @@ pub fn scene_to_vertices(scene_objects: &Vec<RenderableObject>) -> Vec<Vec3f> {
 pub fn render( ) -> Result<(), String> {
     let (mut canvas, mut event_pump) = render_init();
 
-    // in the same window
-    // render a plane, cone, corresponding conic section
-    /*
-    do all the math
-    hypercone = hypercone::new() yada yada yas
-    hyperplane = plane::new() 
-    conic_section = hypercone.intersection(hyperplane)
-
-    3d conic = RenderableObject::new(center of object, rotations, surface data)
-    object_buffer = <RenderableObject, RenderableObject, RenderableObject, RenderableObject>
-    vertex_buffer = object_buffer_to_vertext
-    render( vertex_buffer )
-*/
     // vec that contains the scene elements
     let mut scene_objects: Vec<RenderableObject> = Vec::new();
 
+
     // ----- hypercone intersection math ----- //
+    let height: f32 = 5.0;
+    let steepness: f32 = 2.0;
+    let hypercone: HyperCone = HyperCone::new(height, steepness);
+
+    //ax + by + cz = d
+    let a = 0.0; let b = 0.0; let c = 1.0; let d = 5.0;
+    let hyperplane: HyperPlane = HyperPlane::new(a, b, c, d);
+
     // transformations:
     let mut rot_x: Mat3x3 = Mat3x3::new();
     rot_x.rotation_x(d2rad(0.0));
@@ -140,19 +136,16 @@ pub fn render( ) -> Result<(), String> {
     let mut rotations: Vec<Mat3x3> = Vec::new();
     rotations.push(rot_x);
 
-    // making the hypercone:
-    let height: f32 = 1.0;
-    let steepness: f32 = 2.0;
-    let hypercone: HyperCone = HyperCone::new(height, steepness);
-    let mut hyperplane: HyperPlane = HyperPlane::new(1.0, 3.0, 2.0, 1.0);
     // conic_section appears
-    let mut conic_section: ConicSection = hypercone.intersection(&hyperplane);
+    let conic_section: ConicSection = hypercone.intersection(&hyperplane);
     println!("{:?}", conic_section.conic_coef);
 
     // renderable object containing the hyperconic surface data and all transformations
     let hyperconic_section = RenderableObject::new(translations, rotations, conic_section.surface_data() );
     
-    // ----- cone -----
+
+
+    // ----- renderable cone -----
     let mut rot_x: Mat3x3 = Mat3x3::new();
     rot_x.rotation_x(d2rad(0.0));
 
@@ -163,20 +156,22 @@ pub fn render( ) -> Result<(), String> {
     let cone_flag: u8 = 5;
     let cone_surface = Surface::new(cone_flag);
     // comically long array with one 2 is just for steepness of cone
-    let chill_cone = RenderableObject::new(translations, rotations, cone_surface.vertices([2.0, 0.0, 0.0, 0.0, 0.0, 0.0]));
+    let chill_cone = RenderableObject::new(translations, rotations, cone_surface.vertices([steepness, height, 0.0, 0.0, 0.0, 0.0]));
    
-    // ----- plane -----
+
+    // ----- renderable plane -----
     let mut rot_x: Mat3x3 = Mat3x3::new();
     rot_x.rotation_x(d2rad(0.0));
 
-    let translations: [f32; 3] = [-0.25, 0.0, -0.25];
+    let translations: [f32; 3] = [0.0, 0.0, 0.0];
     let mut rotations: Vec<Mat3x3> = Vec::new();
     rotations.push(rot_x);
 
     let plane_flag: u8 = 6;
     let plane_surface = Surface::new(plane_flag);
+
     // last two are just placeholders, they arent used
-    let plane_coefs = [1.0, 3.0, 2.0, 1.0, 0.0, 0.0];
+    let plane_coefs = [a, b, c, d, 0.0, 0.0];
     let chill_plane = RenderableObject::new(translations, rotations, plane_surface.vertices(plane_coefs));
 
     
@@ -184,10 +179,10 @@ pub fn render( ) -> Result<(), String> {
     
     scene_objects.push(chill_cone);
     
-    scene_objects.push(hyperconic_section);
+    //scene_objects.push(hyperconic_section);
 
     // finally push everything to the buffer
-    let mut vertex_buffer: Vec<Vec3f> = scene_to_vertices(&scene_objects);
+    let vertex_buffer: Vec<Vec3f> = scene_to_vertices(&scene_objects);
     
 
     let mut rotation_y = Y_ROTATION;
