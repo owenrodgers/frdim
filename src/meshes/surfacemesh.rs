@@ -118,8 +118,8 @@ impl Surface {
                 // both angles so need to go to radians
                 let theta = Self::d2rad(v_parameter);
                 let psi = Self::d2rad(u_parameter);
-                let a: f32 = optional_parameters[0];
-                let b: f32 = optional_parameters[2];
+                let a: f32 = optional_parameters[0] / 2.0;
+                let b: f32 = optional_parameters[2] / 2.0;
                 let c: f32;
 
                 if a > b { 
@@ -163,10 +163,11 @@ impl Surface {
                 // both angles so need to go to radians
                 let theta = Self::d2rad(v_parameter);
                 let psi = Self::d2rad(u_parameter);
+                let a = optional_parameters[0] / 2.0;
 
-                let x = scale * psi.cos() * theta.sin();
-                let y = scale * psi.sin() * theta.sin();
-                let z = scale * theta.cos();
+                let x = a * scale * psi.cos() * theta.sin();
+                let y = a * scale * psi.sin() * theta.sin();
+                let z = a * scale * theta.cos();
                 (x,y,z)
             }
             HYPERBOLIC_PARABOLOID => {

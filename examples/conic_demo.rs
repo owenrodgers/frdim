@@ -115,71 +115,69 @@ pub fn scene_to_vertices(scene_objects: &Vec<RenderableObject>) -> Vec<Vec3f> {
 pub fn render( ) -> Result<(), String> {
     let (mut canvas, mut event_pump) = render_init();
 
-    // vec that contains the scene elements
-    let mut scene_objects: Vec<RenderableObject> = Vec::new();
+     // transformations for conic section:
+    let mut rot_x_conic_section: Mat3x3 = Mat3x3::new();
+    rot_x_conic_section.rotation_x(d2rad(0.0));
+
+    let translations_conic_section: [f32; 3] = [0.25, 0.0, 0.0];
+    let mut rotations_conic_section: Vec<Mat3x3> = Vec::new();
+    rotations_conic_section.push(rot_x_conic_section);
+
+
+    // transformations for cone
+    // ----- renderable cone -----
+    let mut rot_x_cone: Mat3x3 = Mat3x3::new();
+    rot_x_cone.rotation_x(d2rad(0.0));
+
+    let translations_cone: [f32; 3] = [0.0, 0.0, 0.0];
+    let mut rotations_cone: Vec<Mat3x3> = Vec::new();
+    rotations_cone.push(rot_x_cone);
+
+    // ----- transformations for plane -----
+    let mut rot_x_plane: Mat3x3 = Mat3x3::new();
+    rot_x_plane.rotation_x(d2rad(0.0));
+
+    let translations_plane: [f32; 3] = [-0.25, -0.25, 0.0];
+    let mut rotations_plane: Vec<Mat3x3> = Vec::new();
+    rotations_plane.push(rot_x_plane);
+
+
+    // ----- some surfaces -----
+    let plane_flag: u8 = 6;
+    let plane_surface = Surface::new(plane_flag);
+
+    let cone_flag: u8 = 5;
+    let cone_surface = Surface::new(cone_flag);  
 
 
     // ----- hypercone intersection math ----- //
-    let height: f32 = 5.0;
+    let height: f32 = 4.0;
     let steepness: f32 = 2.0;
     let hypercone: HyperCone = HyperCone::new(height, steepness);
 
     //ax + by + cz = d
-    let a = 0.0; let b = 0.0; let c = 1.0; let d = 5.0;
+    let a = 1.0; let b = 0.0; let c = 1.0; let d = 3.0;
     let hyperplane: HyperPlane = HyperPlane::new(a, b, c, d);
-
-    // transformations:
-    let mut rot_x: Mat3x3 = Mat3x3::new();
-    rot_x.rotation_x(d2rad(0.0));
-
-    let translations: [f32; 3] = [0.25, 0.0, 0.0];
-    let mut rotations: Vec<Mat3x3> = Vec::new();
-    rotations.push(rot_x);
 
     // conic_section appears
     let conic_section: ConicSection = hypercone.intersection(&hyperplane);
     println!("{:?}", conic_section.conic_coef);
 
-    // renderable object containing the hyperconic surface data and all transformations
-    let hyperconic_section = RenderableObject::new(translations, rotations, conic_section.surface_data() );
-    
-
-
-    // ----- renderable cone -----
-    let mut rot_x: Mat3x3 = Mat3x3::new();
-    rot_x.rotation_x(d2rad(0.0));
-
-    let translations: [f32; 3] = [0.0, 0.0, 0.0];
-    let mut rotations: Vec<Mat3x3> = Vec::new();
-    rotations.push(rot_x);
-
-    let cone_flag: u8 = 5;
-    let cone_surface = Surface::new(cone_flag);
-    // comically long array with one 2 is just for steepness of cone
-    let chill_cone = RenderableObject::new(translations, rotations, cone_surface.vertices([steepness, height, 0.0, 0.0, 0.0, 0.0]));
-   
-
-    // ----- renderable plane -----
-    let mut rot_x: Mat3x3 = Mat3x3::new();
-    rot_x.rotation_x(d2rad(0.0));
-
-    let translations: [f32; 3] = [0.0, 0.0, 0.0];
-    let mut rotations: Vec<Mat3x3> = Vec::new();
-    rotations.push(rot_x);
-
-    let plane_flag: u8 = 6;
-    let plane_surface = Surface::new(plane_flag);
-
-    // last two are just placeholders, they arent used
+    // cone, plane and conic section
     let plane_coefs = [a, b, c, d, 0.0, 0.0];
-    let chill_plane = RenderableObject::new(translations, rotations, plane_surface.vertices(plane_coefs));
+    let cone_coefs = [steepness, height, 0.0, 0.0, 0.0, 0.0];
 
     
+    let chill_plane = RenderableObject::new(translations_plane, rotations_plane, plane_surface.vertices(plane_coefs));
+    let chill_cone = RenderableObject::new(translations_cone, rotations_cone, cone_surface.vertices(cone_coefs));
+    let hyperconic_section = RenderableObject::new(translations_conic_section, rotations_conic_section, conic_section.surface_data());
+    
+    // vec that contains the scene elements
+    let mut scene_objects: Vec<RenderableObject> = Vec::new();
+
     scene_objects.push(chill_plane);
-    
     scene_objects.push(chill_cone);
-    
-    //scene_objects.push(hyperconic_section);
+    scene_objects.push(hyperconic_section);
 
     // finally push everything to the buffer
     let vertex_buffer: Vec<Vec3f> = scene_to_vertices(&scene_objects);
@@ -194,10 +192,10 @@ pub fn render( ) -> Result<(), String> {
             match event { 
                 Event::Quit { .. } => break 'main, 
                 Event::KeyDown { keycode: Some(Keycode::Return), .. } => {rotation_x = X_ROTATION; rotation_y = Y_ROTATION},
-                Event::KeyDown { keycode: Some(Keycode::Right ), .. } => rotation_y -= rot_inc,
-                Event::KeyDown { keycode: Some(Keycode::Left  ), .. } => rotation_y += rot_inc,
-                Event::KeyDown { keycode: Some(Keycode::Down  ), .. } => rotation_x -= rot_inc,
-                Event::KeyDown { keycode: Some(Keycode::Up    ), .. } => rotation_x += rot_inc,
+                Event::KeyDown { keycode: Some(Keycode::Right ), .. } => {rotation_y -= rot_inc},
+                Event::KeyDown { keycode: Some(Keycode::Left  ), .. } => {rotation_y += rot_inc;},
+                Event::KeyDown { keycode: Some(Keycode::Down  ), .. } => {rotation_x -= rot_inc;},
+                Event::KeyDown { keycode: Some(Keycode::Up    ), .. } => {rotation_x += rot_inc;},
                 _ => { } } }
         
         let rotations: [f32; 2] = [rotation_x, rotation_y];
