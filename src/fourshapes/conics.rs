@@ -73,11 +73,11 @@ impl ConicSection{
 
         if discriminant < 0.0 {  
             if self.conic_coef[0] == self.conic_coef[2] {
-                println!("Sphere");
+                //println!("Sphere");
                 surface = Surface::new(SPHERE)
                 
             } else {
-                println!("Ellipsoid");
+                //println!("Ellipsoid");
                 surface = Surface::new(ELLIPSOID);
                 
             }

@@ -101,12 +101,13 @@ impl Surface {
                 (x,y,z)
             }
             PLANE => {
-                let k: f32 = 1.0 / 20.0;
+                let k: f32 = 1.0 / 10.0;
+                //let xy_scale: f32 = 1.0 / 10.0;
                 let a = optional_parameters[0];
                 let b = optional_parameters[1];
                 let c = optional_parameters[2];
                 let d = optional_parameters[3];
-                
+                // 10 is to 0.5 as 3 is 
                 let x = k * u_parameter as f32;
                 let y = k * v_parameter as f32;
                 let z = k * (1.0 / c) * (d - a * u_parameter as f32 - b * v_parameter as f32);
@@ -121,6 +122,8 @@ impl Surface {
                 let a: f32 = optional_parameters[0] / 2.0;
                 let b: f32 = optional_parameters[2] / 2.0;
                 let c: f32;
+                let d = ((optional_parameters[5]).abs()).sqrt() / 2.0;
+                //let d: f32 = optional_parameters[3] / 20.0; //println!("{}", d);
 
                 if a > b { 
                     c = b 
@@ -128,9 +131,9 @@ impl Surface {
                     c = a
                 }
 
-                let x = a * scale * psi.cos() * theta.sin();
-                let y = b * scale * psi.sin() * theta.sin();
-                let z = c * scale * theta.cos();
+                let x = a * d * scale * psi.cos() * theta.sin();
+                let y = b * d * scale * psi.sin() * theta.sin();
+                let z = c * d * scale * theta.cos();
                 (x,y,z)
 
             }
@@ -163,11 +166,12 @@ impl Surface {
                 // both angles so need to go to radians
                 let theta = Self::d2rad(v_parameter);
                 let psi = Self::d2rad(u_parameter);
-                let a = optional_parameters[0] / 2.0;
+                //let a = optional_parameters[0] / 2.0;
+                let d = ((optional_parameters[5]).abs()).sqrt() / 2.0; //println!("{}", d);
 
-                let x = a * scale * psi.cos() * theta.sin();
-                let y = a * scale * psi.sin() * theta.sin();
-                let z = a * scale * theta.cos();
+                let x = d * scale * psi.cos() * theta.sin();
+                let y = d * scale * psi.sin() * theta.sin();
+                let z = d * scale * theta.cos();
                 (x,y,z)
             }
             HYPERBOLIC_PARABOLOID => {

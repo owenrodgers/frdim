@@ -40,7 +40,7 @@ export LIBRARY_PATH="$LIBRARY_PATH:$(brew --prefix)/lib"
 // render the plane
 
 use frdim::fourshapes::hyperconics::{HyperCone, HyperPlane};
-use frdim::fourshapes::conics::ConicSection;
+//use frdim::fourshapes::conics::ConicSection;
 use frdim::meshes::surfacemesh::Surface;
 
 
@@ -119,13 +119,11 @@ pub fn render( ) -> Result<(), String> {
     let mut rot_x_conic_section: Mat3x3 = Mat3x3::new();
     rot_x_conic_section.rotation_x(d2rad(0.0));
 
-    let translations_conic_section: [f32; 3] = [0.25, 0.0, 0.0];
-    let mut rotations_conic_section: Vec<Mat3x3> = Vec::new();
-    rotations_conic_section.push(rot_x_conic_section);
+    //let translations_conic: [f32; 3] = [0.25, 0.0, 0.0];
+    let mut rotations_conic: Vec<Mat3x3> = Vec::new();
+    rotations_conic.push(rot_x_conic_section);
 
-
-    // transformations for cone
-    // ----- renderable cone -----
+    // ----- transformations for cone -----
     let mut rot_x_cone: Mat3x3 = Mat3x3::new();
     rot_x_cone.rotation_x(d2rad(0.0));
 
@@ -140,56 +138,51 @@ pub fn render( ) -> Result<(), String> {
     let translations_plane: [f32; 3] = [-0.25, -0.25, 0.0];
     let mut rotations_plane: Vec<Mat3x3> = Vec::new();
     rotations_plane.push(rot_x_plane);
+  
+    // initial surface parameters
+    let steepness: f32 = 2.0;
+    let height: f32 = 4.0;
 
+    let a: f32 = 0.0; let b: f32 = 0.0; let c: f32 = 2.0; let d: f32 = 5.0;
+    let translations_conic: [f32; 3] = [0.5, 0.0, (d / 20.0)];
 
-    // ----- some surfaces -----
+    // ----- Cone -----
+    let cone_flag: u8 = 5;
+    let cone_surface = Surface::new(cone_flag);
+
+    let cone_coefficients = [steepness, height, 0.0, 0.0, 0.0, 0.0]; // steepness, height
+    let cone_surface_data = cone_surface.vertices(cone_coefficients);
+
+    let cone: HyperCone = HyperCone::new(height, steepness);
+    
+
+    // ----- Plane -----
     let plane_flag: u8 = 6;
     let plane_surface = Surface::new(plane_flag);
+    
+    let plane_coefficients = [a, b, c, d, 0.0, 0.0]; // ax + by + cz = d
+    let plane_surface_data = plane_surface.vertices(plane_coefficients);
 
-    let cone_flag: u8 = 5;
-    let cone_surface = Surface::new(cone_flag);  
+    let mut plane: HyperPlane = HyperPlane::new(a,b,c,d);
 
-
-    // ----- hypercone intersection math ----- //
-    let height: f32 = 4.0;
-    let steepness: f32 = 2.0;
-    let hypercone: HyperCone = HyperCone::new(height, steepness);
-
-    //ax + by + cz = d
-    let a = 1.0; let b = 0.0; let c = 1.0; let d = 3.0;
-    let hyperplane: HyperPlane = HyperPlane::new(a, b, c, d);
-
-    // conic_section appears
-    let conic_section: ConicSection = hypercone.intersection(&hyperplane);
+    // ----- Conic -----
+    let conic_section = cone.intersection(&plane);
+    let conic_surface_data = conic_section.surface_data();
     println!("{:?}", conic_section.conic_coef);
 
-    // cone, plane and conic section
-    let plane_coefs = [a, b, c, d, 0.0, 0.0];
-    let cone_coefs = [steepness, height, 0.0, 0.0, 0.0, 0.0];
+    let mut vertex_buffer: Vec<Vec3f> = Vec::new();
 
-    
-    let chill_plane = RenderableObject::new(translations_plane, rotations_plane, plane_surface.vertices(plane_coefs));
-    let chill_cone = RenderableObject::new(translations_cone, rotations_cone, cone_surface.vertices(cone_coefs));
-    let hyperconic_section = RenderableObject::new(translations_conic_section, rotations_conic_section, conic_section.surface_data());
-    
-    // vec that contains the scene elements
-    let mut scene_objects: Vec<RenderableObject> = Vec::new();
+    let render_cone = RenderableObject::new(translations_cone, rotations_cone, cone_surface_data);
+    let mut render_plane = RenderableObject::new(translations_plane, rotations_plane, plane_surface_data);
+    let mut render_conic = RenderableObject::new(translations_conic, rotations_conic, conic_surface_data);
 
-    scene_objects.push(chill_plane);
-    scene_objects.push(chill_cone);
-    scene_objects.push(hyperconic_section);
 
-    // finally push everything to the buffer
-    let vertex_buffer: Vec<Vec3f> = scene_to_vertices(&scene_objects);
-    
+
 
     let mut rotation_y = Y_ROTATION;
     let mut rotation_x = X_ROTATION;
     let rot_inc = 5.0;
-    /*
-    let mut varying_c: f32;
     let mut x: f32 = 0.0;
-    */
 
     'main: loop {
         for event in event_pump.poll_iter() {
@@ -205,20 +198,29 @@ pub fn render( ) -> Result<(), String> {
         let rotations: [f32; 2] = [rotation_x, rotation_y];
         canvas.set_draw_color(Color::RGB(25, 25, 25));
         canvas.clear();
-        //scene_objects.clear
+        vertex_buffer.clear(); // very important
 
-        /*
-        // change coefficients for plane
-        hyperplane.c = varying_c;
-        varying_c = 4.0 * x.cos() + 5.0;
-        x += 0.1;
+            
+        plane.d = 4.0 * x.cos();
+        //plane.a = x.cos();
+        //println!("{}, {}", plane.d, plane.a);
+        x += 0.05;
 
-        // update vertex data for conic
-        conic_section = hypercone.intersection(&hyperplane);
-        hyperconic_section.surface_data = conic_section.surface_data();
+        //translations_conic[2] = (plane.d / 20.0);
+        //translations_plane[2] = (plane.d / 20.0);
 
-        // push new data to buffer
-*/
+
+        render_conic.surface_data = (cone.intersection(&plane)).surface_data();
+        //println!("{:?}", (cone.intersection(&plane)).conic_coef);
+        render_conic.trans_z = plane.d / 40.0;
+
+        render_plane.surface_data = plane_surface.vertices([plane.a, plane.b, plane.c, plane.d, 0.0, 0.0]);
+        //render_plane.trans_z = (plane.d / 20.0);
+
+        render_conic.push_to_vertex_buffer(&mut vertex_buffer);
+        render_plane.push_to_vertex_buffer(&mut vertex_buffer);
+        render_cone.push_to_vertex_buffer(&mut vertex_buffer);
+        
         draw_axis(&mut canvas, &rotations)?;
         render_vertex_buffer(&mut canvas, &vertex_buffer, &rotations)?;
         
