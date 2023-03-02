@@ -2,9 +2,9 @@
 // governing ConicSection
 // from the points 
 
-use crate::Vec3f;
+//use crate::Vec3f;
 use crate::ConicSection;
-use crate::Mat3x3;
+//use crate::Mat3x3;
 use crate::Cone;
 use crate::Plane;
 
@@ -25,7 +25,7 @@ impl HyperCone {
         cc[4] = 2.0 * plane.b * plane.d;
         cc[5] = -1.0 * plane.d * plane.d;
         let normal_plane = Plane{a: plane.a, b: plane.b, c: plane.c, d: plane.d};
-        let normal_cone = Cone{m: self.steepness};
+        let normal_cone = Cone{m: self.steepness, h: 2.0};
 
         return ConicSection{cone: normal_cone, plane: normal_plane, conic_coef: cc}
     }
@@ -43,34 +43,11 @@ impl HyperPlane {
         HyperPlane{a: a, b: b, c: c, d: d}
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+/*
 pub struct HyperConic {
-    pub conic: ConicSection,
+    pub conic_coefficients: [f32; 6],
+    pub cone: HyperCone,
+    pub plane: HyperPlane,
     //pointcloud: Vec<Vec3f>,
 }
 
@@ -124,3 +101,4 @@ impl HyperConic {
     */
 }
 
+*/

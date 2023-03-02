@@ -10,3 +10,6 @@ rand = "0.8.4"
 version = "0.35.2"
 default-features = false
 features = ["gfx"]
+
+[dependencies.jive]
+path = "/Users/owen/Programming/college/400/jive/"

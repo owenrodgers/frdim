@@ -101,16 +101,39 @@ impl Surface {
                 (x,y,z)
             }
             PLANE => {
-                let k: f32 = 1.0 / 10.0;
+                let k: f32 = 1.0 / 20.0;
                 //let xy_scale: f32 = 1.0 / 10.0;
                 let a = optional_parameters[0];
                 let b = optional_parameters[1];
                 let c = optional_parameters[2];
                 let d = optional_parameters[3];
-                // 10 is to 0.5 as 3 is 
-                let x = k * u_parameter as f32;
-                let y = k * v_parameter as f32;
-                let z = k * (1.0 / c) * (d - a * u_parameter as f32 - b * v_parameter as f32);
+
+                let mut x = 0.0;
+                let mut y = 0.0;
+                let mut z = 0.0;
+                // if else is a hammer and everything is a nail
+
+                if a == 0.0 && b == 0.0 && c == 0.0 {
+                    println!("all zero, problem");
+                } else if a != 0.0 && b != 0.0 && c != 0.0 {
+                    // ax + by + cz = d
+                    x = u_parameter; y = v_parameter; z = (1.0 / c) * (d - a*u_parameter - b*v_parameter);
+                } else if a == 0.0 || b == 0.0 || c == 0.0 {
+                    if a == 0.0 && b == 0.0 {
+                        // cz = d
+                        x = u_parameter; y = v_parameter; z = d;
+                    } else if b == 0.0 && c == 0.0 {
+                        // ax = d
+                        x = u_parameter; y = d; z = v_parameter;
+                    } else if a == 0.0 && c == 0.0 {
+                        // by = d
+                        x = d; y = v_parameter; z = u_parameter;
+                    } else {
+                        // ax + by + cz = d
+                        x = u_parameter; y = v_parameter; z = (1.0 / c) * (d - a*u_parameter - b*v_parameter);
+                    }
+                }
+                x *= k; y *= k; z *= k;
                 (x,y,z)
             }
             ELLIPSOID => {
@@ -123,14 +146,12 @@ impl Surface {
                 let b: f32 = optional_parameters[2] / 2.0;
                 let c: f32;
                 let d = ((optional_parameters[5]).abs()).sqrt() / 2.0;
-                //let d: f32 = optional_parameters[3] / 20.0; //println!("{}", d);
 
                 if a > b { 
                     c = b 
                 } else {
                     c = a
                 }
-
                 let x = a * d * scale * psi.cos() * theta.sin();
                 let y = b * d * scale * psi.sin() * theta.sin();
                 let z = c * d * scale * theta.cos();
@@ -144,8 +165,8 @@ impl Surface {
                 let a: f32 = optional_parameters[0];
                 let b: f32 = optional_parameters[2];
 
-                let x = a * scale * v.cosh() * theta.cos();
-                let y = b * scale * v.cosh() * theta.sin();
+                let x = scale * a * scale * v.cosh() * theta.cos();
+                let y = scale * b * scale * v.cosh() * theta.sin();
                 let z = scale * v.sinh();
                 (x,z,y)
             }
@@ -166,8 +187,7 @@ impl Surface {
                 // both angles so need to go to radians
                 let theta = Self::d2rad(v_parameter);
                 let psi = Self::d2rad(u_parameter);
-                //let a = optional_parameters[0] / 2.0;
-                let d = ((optional_parameters[5]).abs()).sqrt() / 2.0; //println!("{}", d);
+                let d = ((optional_parameters[5]).abs()).sqrt() / 2.0; 
 
                 let x = d * scale * psi.cos() * theta.sin();
                 let y = d * scale * psi.sin() * theta.sin();
@@ -175,7 +195,7 @@ impl Surface {
                 (x,y,z)
             }
             HYPERBOLIC_PARABOLOID => {
-                //let scale: f32 = 1.0 / 500.0;
+                
                 let x = scale * v_parameter;
                 let y = scale * u_parameter;
                 let z = 2.0 * (x * x) -  2.0 * (y * y);

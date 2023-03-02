@@ -5,6 +5,63 @@ use sdl2::pixels::Color;
 use sdl2::render::WindowCanvas;
 use sdl2::gfx::primitives::DrawRenderer;
 
+use crate::Vec3f;
+use crate::Mat3x3;
+
+
+pub struct RenderableObject{
+    pub trans_x: f32, pub trans_y: f32, pub trans_z:f32,
+    pub rotations: Vec<Mat3x3>,  // order matters
+    pub surface_data: Vec<Vec3f>,
+}
+
+impl RenderableObject {
+    pub fn new(tr: [f32; 3], rotations: Vec<Mat3x3>, surface_data: Vec<Vec3f> ) -> RenderableObject {
+        RenderableObject{ trans_x: tr[0], trans_y: tr[1], trans_z: tr[2],
+                          rotations: rotations, surface_data: surface_data}
+    }
+    pub fn push_to_vertex_buffer(&self, vertex_buffer: &mut Vec<Vec3f>) {
+        // apply transform to each vertex in surface data
+        let mut transformed: Vec3f;
+
+        for vertex in self.surface_data.iter() {
+            transformed = Vec3f::from([vertex.e[0], vertex.e[1], vertex.e[2]]);
+
+            transformed = Self::apply_rotations(&transformed, &self.rotations);
+            transformed = Self::apply_translations(&transformed, self.trans_x, self.trans_y, self.trans_z);
+            
+            vertex_buffer.push(transformed);
+        }
+        
+    }
+    fn apply_rotations(vertex: &Vec3f, rotations: &Vec<Mat3x3> ) -> Vec3f {
+        let mut rotated: Vec3f = Vec3f::from([vertex.e[0], vertex.e[1], vertex.e[2]]);
+        for rotation in rotations.iter() {
+            rotated = rotated * *rotation;
+        }
+        return rotated;
+    }
+    fn apply_translations(vertex: &Vec3f, trans_x: f32, trans_y: f32, trans_z:f32) -> Vec3f {
+        let x = vertex.e[0] + trans_x;
+        let y = vertex.e[1] + trans_y;
+        let z = vertex.e[2] + trans_z;
+        return Vec3f::from([x,y,z]);
+    }
+}
+
+pub fn scene_to_vertices(scene_objects: &Vec<RenderableObject>) -> Vec<Vec3f> {
+    let mut vertex_buffer: Vec<Vec3f> = Vec::new();
+    for r_object in scene_objects.iter() {
+        r_object.push_to_vertex_buffer(&mut vertex_buffer);
+    }
+    return vertex_buffer;
+}
+
+
+
+
+
+
 
 // functions for rendering triangles
 

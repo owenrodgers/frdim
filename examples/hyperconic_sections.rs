@@ -10,6 +10,9 @@ use crate::sdl2::gfx::primitives::DrawRenderer;
 extern crate frdim;
 use frdim::la::vec3f::Vec3f;
 use frdim::la::matrix::{Mat4x4, Mat3x3};
+use frdim::meshes::surfacemesh::Surface;
+use frdim::rendering::render::{RenderableObject};
+use frdim::fourshapes::hyperconics::{HyperCone, HyperPlane};
 
 use std::time::Duration;
 use std::f32::consts::PI;
@@ -27,90 +30,27 @@ const Z_ROTATION: f32 = 0.0;
 const Z_OFFSET:f32 = 0.0;
 
 /*
-ls problem use:
-export LIBRARY_PATH="$LIBRARY_PATH:$(brew --prefix)/lib"
+Examples needed
+Dynamic Hyperconic sections (this file)
+Static Hyperconic sections (conic_demo)
+
+Surface demonstration (surface_meshes) **broken
+
+Don't really need
+conic_sections
+hypershapes (uses triangles)
+
 */
-
-/*
-    render a 3d cross section of  w-plane intersecting 4d cone
-*/
-// can we see a hyperconic section and a cone/plane intersection beside it?
-// render the conic section
-// render the cone
-// render the plane
-
-use frdim::fourshapes::hyperconics::{HyperCone, HyperPlane};
-//use frdim::fourshapes::conics::ConicSection;
-use frdim::meshes::surfacemesh::Surface;
-
 
 
 fn main() -> Result<(), String>{
     println!("Coordinate system on screen is -0.5 to +0.5");
     println!("x-axis: RED | y-axis: GREEN | z-axis: BLUE");
-    //
 
     render()?;
 
     Ok(())
 }
-
-/*
-renderable object struct
-    center (x,y,z) offsets basically
-    rotations
-    surface_data Vec<Vec3f>
-
-*/
-
-pub struct RenderableObject{
-    trans_x: f32, trans_y: f32, trans_z:f32,
-    rotations: Vec<Mat3x3>,  // vec because order matters for passive/active rotations and to avoid gimball lock
-    surface_data: Vec<Vec3f>,
-}
-
-impl RenderableObject {
-    pub fn new(tr: [f32; 3], rotations: Vec<Mat3x3>, surface_data: Vec<Vec3f> ) -> RenderableObject {
-        RenderableObject{ trans_x: tr[0], trans_y: tr[1], trans_z: tr[2],
-                          rotations: rotations, surface_data: surface_data}
-    }
-    pub fn push_to_vertex_buffer(&self, vertex_buffer: &mut Vec<Vec3f>) {
-        // apply transform to each vertex in surface data
-        let mut transformed: Vec3f;
-
-        for vertex in self.surface_data.iter() {
-            transformed = Vec3f::from([vertex.e[0], vertex.e[1], vertex.e[2]]);
-
-            transformed = Self::apply_rotations(&transformed, &self.rotations);
-            transformed = Self::apply_translations(&transformed, self.trans_x, self.trans_y, self.trans_z);
-            
-            vertex_buffer.push(transformed);
-        }
-        
-    }
-    fn apply_rotations(vertex: &Vec3f, rotations: &Vec<Mat3x3> ) -> Vec3f {
-        let mut rotated: Vec3f = Vec3f::from([vertex.e[0], vertex.e[1], vertex.e[2]]);
-        for rotation in rotations.iter() {
-            rotated = rotated * *rotation;
-        }
-        return rotated;
-    }
-    fn apply_translations(vertex: &Vec3f, trans_x: f32, trans_y: f32, trans_z:f32) -> Vec3f {
-        let x = vertex.e[0] + trans_x;
-        let y = vertex.e[1] + trans_y;
-        let z = vertex.e[2] + trans_z;
-        return Vec3f::from([x,y,z]);
-    }
-}
-
-pub fn scene_to_vertices(scene_objects: &Vec<RenderableObject>) -> Vec<Vec3f> {
-    let mut vertex_buffer: Vec<Vec3f> = Vec::new();
-    for r_object in scene_objects.iter() {
-        r_object.push_to_vertex_buffer(&mut vertex_buffer);
-    }
-    return vertex_buffer;
-}
-
 
 pub fn render( ) -> Result<(), String> {
     let (mut canvas, mut event_pump) = render_init();
@@ -135,16 +75,16 @@ pub fn render( ) -> Result<(), String> {
     let mut rot_x_plane: Mat3x3 = Mat3x3::new();
     rot_x_plane.rotation_x(d2rad(0.0));
 
-    let translations_plane: [f32; 3] = [-0.25, -0.25, 0.0];
+    let translations_plane: [f32; 3] = [0.0, 0.0, 0.0];
     let mut rotations_plane: Vec<Mat3x3> = Vec::new();
     rotations_plane.push(rot_x_plane);
   
     // initial surface parameters
     let steepness: f32 = 2.0;
-    let height: f32 = 4.0;
+    let height: f32 = 6.0;
 
-    let a: f32 = 0.0; let b: f32 = 0.0; let c: f32 = 2.0; let d: f32 = 5.0;
-    let translations_conic: [f32; 3] = [0.5, 0.0, (d / 20.0)];
+    let a: f32 = 0.0; let b: f32 = 0.0; let c: f32 = 1.0; let d: f32 = 3.0;
+    let translations_conic: [f32; 3] = [0.5, 0.0, 0.0];
 
     // ----- Cone -----
     let cone_flag: u8 = 5;
@@ -177,8 +117,6 @@ pub fn render( ) -> Result<(), String> {
     let mut render_conic = RenderableObject::new(translations_conic, rotations_conic, conic_surface_data);
 
 
-
-
     let mut rotation_y = Y_ROTATION;
     let mut rotation_x = X_ROTATION;
     let rot_inc = 5.0;
@@ -200,23 +138,13 @@ pub fn render( ) -> Result<(), String> {
         canvas.clear();
         vertex_buffer.clear(); // very important
 
-            
-        plane.d = 4.0 * x.cos();
-        //plane.a = x.cos();
-        //println!("{}, {}", plane.d, plane.a);
+        plane.d = 2.0 * x.cos() + 1.0 ;
         x += 0.05;
-
-        //translations_conic[2] = (plane.d / 20.0);
-        //translations_plane[2] = (plane.d / 20.0);
 
 
         render_conic.surface_data = (cone.intersection(&plane)).surface_data();
-        //println!("{:?}", (cone.intersection(&plane)).conic_coef);
-        render_conic.trans_z = plane.d / 40.0;
-
         render_plane.surface_data = plane_surface.vertices([plane.a, plane.b, plane.c, plane.d, 0.0, 0.0]);
-        //render_plane.trans_z = (plane.d / 20.0);
-
+        
         render_conic.push_to_vertex_buffer(&mut vertex_buffer);
         render_plane.push_to_vertex_buffer(&mut vertex_buffer);
         render_cone.push_to_vertex_buffer(&mut vertex_buffer);

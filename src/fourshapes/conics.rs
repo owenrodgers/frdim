@@ -24,14 +24,17 @@
 use crate::Mat2x2;
 use crate::Vec3f;
 use crate::meshes::surfacemesh::Surface;
+//use crate::fourshapes::hyperconics::HyperPlane;
+//use crate::fourshapes::hyperconics::HyperCone;
 
 #[derive(Default, Copy, Clone)]
 pub struct Cone{
     pub m: f32,
+    pub h: f32
 }
 impl Cone{
-    pub fn new(steepness: f32) -> Cone {
-        Cone{m: steepness}
+    pub fn new(steepness: f32, height: f32) -> Cone {
+        Cone{m: steepness, h: height}
     }
 }
 
@@ -65,6 +68,26 @@ impl ConicSection{
         let conic_coef: [f32; 6] = Self::compute_conic_coefficients(&cone, &plane);
         ConicSection{cone: cone, plane: plane, conic_coef: conic_coef}
     }
+    pub fn conic_type(&self) -> u8 {
+        // categorize based on the discriminant
+        // b^2 - 4ac
+        let discriminant = self.conic_coef[1] * self.conic_coef[1] - 4.0 * self.conic_coef[0] * self.conic_coef[2];
+        let conic_type: u8;
+
+        if discriminant < 0.0 {  
+            if self.conic_coef[0] == self.conic_coef[2] {
+                conic_type = SPHERE;
+            } else {
+                conic_type = ELLIPSOID;
+            }
+        } else if discriminant > 0.0 { 
+            conic_type = HYPERBOLOID;
+        } else {  
+            conic_type = PARABOLOID;
+        }
+        return conic_type;
+    }
+
     pub fn surface_data(&self) -> Vec<Vec3f> {
         // categorize based on the discriminant
         // b^2 - 4ac
@@ -216,6 +239,15 @@ impl ConicSection{
         }
         vertices
     }
+}
 
-
+pub fn conic_intersection(plane: &Plane, cone: &Cone) -> ConicSection {
+    let mut cfs: [f32; 6] = [0.0; 6];
+    cfs[0] = plane.c * plane.c * cone.m * cone.m - plane.a * plane.a;                       // A
+    cfs[1] = -2.0 * plane.a * plane.b;                                                      // B
+    cfs[2] = plane.c * plane.c * cone.m * cone.m - plane.b * plane.b;                       // C
+    cfs[3] = 2.0 * plane.a * plane.d;                                                       // D
+    cfs[4] = 2.0 * plane.b * plane.d;                                                      // E
+    cfs[5] = plane.d * plane.d;                                                            // F
+    ConicSection{cone: *cone, plane: *plane, conic_coef: cfs}
 }

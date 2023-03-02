@@ -237,7 +237,7 @@ pub fn render_vertex_buffer(c: &mut WindowCanvas, vb: &Vec<Vec3f>, rotations: &[
 
 
     for vertex in vb.iter() {
-        let z = 10.0 * vertex.e[2];
+        let z = 10.0 * vertex.e[2]; // for color
         let render_point = apply_projective_transformations(vertex, rotations, offsets);
 
         if (render_point.e[0] < SCREEN_WIDTH && render_point.e[0] > 0.0 ) && (render_point.e[1] < SCREEN_WIDTH && render_point.e[1] > 0.0 ) {
@@ -255,10 +255,11 @@ pub fn apply_projective_transformations(vertex: &Vec3f, rotations: [Mat3x3; 3], 
     projection_matrix.projection(&SCREEN_HEIGHT, &SCREEN_WIDTH, &d2rad(FOV), &FFAR, &FNEAR);
 
     let mut render_point = Vec3f::from(vertex.e);
-    render_point.e[2] += offsets[2];
+    //render_point.e[2] += offsets[2];
 
-    render_point = render_point * rotations[1]; render_point = render_point * rotations[0];
+    //render_point = render_point * rotations[1]; render_point = render_point * rotations[0];
     render_point *= &projection_matrix; 
+    
     render_point.e[0] += offsets[0];
     render_point.e[1] += offsets[1];
         
