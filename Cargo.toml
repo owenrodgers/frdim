@@ -1,15 +1,17 @@
 [package]
-name = "frdim"
+name = "higher-dimensional-shapes"
 version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-rand = "0.8.4"
 
 [dependencies.sdl2]
 version = "0.35.2"
 default-features = false
 features = ["gfx"]
 
+[dependencies.hds]
+path = "/Users/owen/Programming/college/400/big_kahuna/whole_enchilada/Higher-Dimensional-Shapes/dependencies/hds"
+
 [dependencies.jive]
-path = "/Users/owen/Programming/college/400/jive/"
+path = "/Users/owen/Programming/college/400/big_kahuna/whole_enchilada/Higher-Dimensional-Shapes/dependencies/jive"
