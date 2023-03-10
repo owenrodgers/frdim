@@ -1,5 +1,8 @@
 # frdim
 Project for CSC-400
+3d Graphics written entirely from scratch without the use of OPENGL and other rendering libraries.\
+Only hard dependency is Rust-SDL2 which is used for color and window.\
+https://github.com/Rust-SDL2/rust-sdl2 
 
 ## Hypercone-Hyperplane Intersection
 Produces 3d cross-section below.
