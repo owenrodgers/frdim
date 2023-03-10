@@ -1,0 +1,14 @@
+[package]
+name = "jive"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies.rola]
+path = "/Users/owen/Programming/college/400/big_kahuna/rola"
+
+[dependencies.sdl2]
+version = "0.35.2"
+default-features = false
+features = ["gfx"]
